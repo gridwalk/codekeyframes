@@ -13,6 +13,7 @@ var jshint       = require('gulp-jshint')             // catches errors in javas
 var stylish      = require('jshint-stylish')          // makes lint errors look nicer
 var plumber      = require('gulp-plumber')            // keeps pipes working even when error var ppens
 var notify       = require('gulp-notify')             // system notification when error happevar 
+var minify       = require('gulp-minify')             // minify JS
 
 // paths to files that are used in the project
 var paths = {
@@ -23,7 +24,7 @@ var paths = {
   },
   images:   './src/img/**/*',
 	pages:    './src/html/**/*',
-	dist:     './dist'
+	dist:     './example'
 }
 
 // these tasks execute in order when you run gulp
@@ -69,7 +70,7 @@ gulp.task('styles', [], function(){
 			browsers: ['last 2 versions'],
 			cascade: false
 		}))
-		.pipe(rename('style.css'))
+		.pipe(rename('codeKeyframes.css'))
 		.pipe(gulp.dest(paths.dist))
 		.pipe(livereload())
 })
@@ -91,7 +92,13 @@ gulp.task('styles', [], function(){
 
 gulp.task('scripts', ['lint'], function(){
 	return gulp.src([paths.scripts.vendor,paths.scripts.app])
-		.pipe(concat('main.js'))
+		.pipe(concat('codeKeyframes.js'))
+		.pipe(minify({
+			ext:{
+				src:'.js',
+				min:'.min.js'
+			}
+		}))
 		.pipe(gulp.dest(paths.dist))
 		.pipe(livereload())
 })

@@ -28,11 +28,11 @@ var ckf = new CodeKeyframes({
 
 Make sure you click the waveform before using keyboard controls. This choice was to avoid adding event listeners to the entire page, to prevent overlap with any other controls that you might use on the page.
 
-`Left & Right` : Move playhead
-`Shift + Left or Right ` : Nudge playhead
-`Up & Down` : Zoom waveform
-`Space` : Play / Pause
-`Enter` : Add keyframe
+`Left & Right` : Move playhead<br>
+`Shift + Left or Right ` : Nudge playhead<br>
+`Up & Down` : Zoom waveform<br>
+`Space` : Play / Pause<br>
+`Enter` : Add keyframe<br>
 `Page Up & Page Down` : Jump between keyframes
 
 ## Acknowledgements

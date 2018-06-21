@@ -21,7 +21,7 @@ function CodeKeyframes(args){
       <form class="code-form">
         <textarea name="code" id="code" cols="30" rows="10"></textarea>
         <div class="controls">
-          <a href="#" class="render">Render Keyframes</a>
+          <a href="#" class="render">Export Keyframes</a>
         </div>
       </form>
     </div>`)
