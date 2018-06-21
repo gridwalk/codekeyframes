@@ -3,6 +3,51 @@
 <head>
   <title>Code Keyframes Example</title>
   <link rel="stylesheet" href="codeKeyframes.css">
+
+  <style>
+
+    /* these styles are just for the example */
+    #example{
+      width: 100vw;
+      height: 50vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: absolute;
+      top: 0;
+      left: 0;
+      font-size: 24px;
+      text-align: center;
+      padding: 40px;
+      box-sizing:border-box;
+      font-family: monaco;
+    }
+    body.party{
+      animation-name: party;
+      animation-duration: 5s;
+      animation-delay: 0s;
+      animation-iteration-count: infinite;
+      animation-timing-function: linear;
+      animation-fill-mode:both;
+    }
+    @keyframes party {
+      0% {
+        background-color:#F0FE78
+      }
+
+      30% {
+        background-color:#6DD461
+      }
+
+      70% {
+        background-color: #FF8474;
+      }
+
+      100% {
+        background-color: #F0FE78;
+      }
+    }
+  </style>
 </head>
 
 <body>
