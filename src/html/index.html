@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <title>Code Keyframes Example</title>
+  <link rel="stylesheet" href="style.css">
+  <meta name="viewport" content="width=device-width"> 
+
+  <!-- Open Graph tags for social media -->
+  <meta property="og:title" content="Code Keyframes Example">
+  <meta property="og:description" content="Code Keyframes is a tool for running JavaScript at specific frames of an audio file.">
+  <meta property="og:image" content="http://project-url.com/img/poster.jpg">
+  <meta property="og:url" content="http://project-url.com">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta property="og:site_name" content="Code Keyframes Example">
+    
+</head>
+
+<body>
+
+  <div id="example"></div>
+
+  <script src='main.js'></script>
+
+  <script>
+    var ckf = new CodeKeyframes({
+      audioPath:     'audio/KIYOKO.mp3',
+      editorOpen:    true,
+      waveColor:     '#3AEAD2',
+      progressColor: '#0c9fa7',
+      bgColor:       '#222',
+      keyframes:     [] // paste in after exoprting keyframes
+    })
+  </script>
+
+</body>
+</html>

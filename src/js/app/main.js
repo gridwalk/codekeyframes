@@ -1,0 +1,416 @@
+
+function CodeKeyframes(args){
+
+  if( !args.audioPath ) return
+
+  this.audioPath  = args.audioPath
+  this.editorOpen = args.editorOpen || false
+  this.keyframes  = args.keyframes  || []
+
+  this.activeRegion = null
+  this.skipLength   = 1
+  this.zoom         = 30
+
+  this.sequence         = []
+  this.sequenceCursor   = 0
+  this.sequenceNextTime = null
+  
+  document.querySelector('body').insertAdjacentHTML('beforeend',`
+    <div id="cf-editor">
+      <div id="cf-waveform" tabindex="0"></div>
+      <form class="code-form">
+        <textarea name="code" id="code" cols="30" rows="10"></textarea>
+        <div class="controls">
+          <a href="#" class="render">Render Keyframes</a>
+        </div>
+      </form>
+    </div>`)
+
+  this._editor       = document.querySelector('#cf-editor')
+  this._waveform     = document.querySelector('#cf-editor #waveform')
+  this._codeForm     = document.querySelector('#cf-editor .code-form')
+  this._code         = document.querySelector('#cf-editor #code')
+  this._renderButton = document.querySelector('#cf-editor .render')
+
+  if( !this.editorOpen ){
+    this._editor.classList.add('closed')
+    this._codeForm.remove()
+  }
+
+  
+  /*
+  
+  ███████╗██╗     ███████╗███╗   ███╗███████╗███╗   ██╗████████╗
+  ██╔════╝██║     ██╔════╝████╗ ████║██╔════╝████╗  ██║╚══██╔══╝
+  █████╗  ██║     █████╗  ██╔████╔██║█████╗  ██╔██╗ ██║   ██║   
+  ██╔══╝  ██║     ██╔══╝  ██║╚██╔╝██║██╔══╝  ██║╚██╗██║   ██║   
+  ███████╗███████╗███████╗██║ ╚═╝ ██║███████╗██║ ╚████║   ██║   
+  ╚══════╝╚══════╝╚══════╝╚═╝     ╚═╝╚══════╝╚═╝  ╚═══╝   ╚═╝   
+                                                                
+  ███████╗██╗   ██╗███████╗███╗   ██╗████████╗███████╗          
+  ██╔════╝██║   ██║██╔════╝████╗  ██║╚══██╔══╝██╔════╝          
+  █████╗  ██║   ██║█████╗  ██╔██╗ ██║   ██║   ███████╗          
+  ██╔══╝  ╚██╗ ██╔╝██╔══╝  ██║╚██╗██║   ██║   ╚════██║          
+  ███████╗ ╚████╔╝ ███████╗██║ ╚████║   ██║   ███████║          
+  ╚══════╝  ╚═══╝  ╚══════╝╚═╝  ╚═══╝   ╚═╝   ╚══════╝          
+  
+  */                                                            
+
+  // save regions on keyup
+  this._code.onkeyup = (e) => {
+    this.activeRegion.data.code = this._code.value
+    this.saveRegions()
+    this.updateSequence()
+  }
+
+  this._code.onkeydown = (e) => {
+    // prevent keystrokes from running other functions
+    // but allow page up/down
+    if( e.which == 33 ) return
+    if( e.which == 34 ) return
+    e.stopPropagation()
+  }  
+
+  this._renderButton.onclick = (e) => {
+    var keyframes = []
+    var regions = this.wavesurfer.regions.list
+    for( var key in this.wavesurfer.regions.list ){
+      var region = this.wavesurfer.regions.list[key]
+      keyframes.push({
+        start:region.start,
+        end:region.end,
+        data:region.data
+      })
+    }
+
+    this.activeRegion = null
+    this._code.value = JSON.stringify(keyframes)
+  }
+
+  document.onkeydown = (e) =>{
+
+    var keycodes = {
+
+      // left
+      37:()=>{ this.wavesurfer.skip(this.skipLength*-1) },
+
+      // right
+      39:()=>{ this.wavesurfer.skip(this.skipLength) },
+
+      // up
+      38:()=>{ 
+        this.zoom += 0.5
+        this.wavesurfer.zoom(this.zoom)
+      },
+
+      // down
+      40:()=>{ 
+        this.zoom -= 0.5
+        this.wavesurfer.zoom(this.zoom)
+      },
+
+      // shift
+      16:()=>{
+        this.skipLength = 0.1
+        e.preventDefault()
+      },
+
+      // enter
+      13:()=>{
+        
+        var region = this.wavesurfer.addRegion({
+          start:  this.wavesurfer.getCurrentTime(),
+          end:    this.wavesurfer.getCurrentTime()+0.1,
+          drag:   false,
+          resize: false
+        })
+
+        this.editCode(region)
+        this.saveRegions()
+        this.updateSequence()
+      },
+
+      // space
+      32:()=>{
+        this.wavesurfer.playPause()
+      },
+
+      // page up
+      33:()=>{
+        this.editCode( this.getNextRegion() )
+      },
+
+      // page down
+      34:()=>{
+        this.editCode( this.getPrevRegion() )
+      },
+
+      // delete
+      46:()=>{
+        this.activeRegion.remove()
+        this.saveRegions()
+        this.updateSequence()
+      },
+
+
+    }
+
+    if( keycodes[e.which] ){
+      keycodes[e.which]()
+    }
+
+  }
+
+  this._editor.onkeyup = (e) =>{
+
+    var keycodes = {
+      // shift
+      16:()=>{
+        this.skipLength = 1
+      }
+    }
+
+    if( keycodes[e.which] ){
+      keycodes[e.which]()
+    }
+  }
+
+
+  /*
+
+  ███╗   ███╗███████╗████████╗██╗  ██╗ ██████╗ ██████╗ ███████╗
+  ████╗ ████║██╔════╝╚══██╔══╝██║  ██║██╔═══██╗██╔══██╗██╔════╝
+  ██╔████╔██║█████╗     ██║   ███████║██║   ██║██║  ██║███████╗
+  ██║╚██╔╝██║██╔══╝     ██║   ██╔══██║██║   ██║██║  ██║╚════██║
+  ██║ ╚═╝ ██║███████╗   ██║   ██║  ██║╚██████╔╝██████╔╝███████║
+  ╚═╝     ╚═╝╚══════╝   ╚═╝   ╚═╝  ╚═╝ ╚═════╝ ╚═════╝ ╚══════╝
+  
+  */
+
+  this.saveRegions = ()=>{
+
+    if( !this.editorOpen ) return
+
+    localStorage.regions = JSON.stringify(
+      Object.keys( this.wavesurfer.regions.list ).map( (id)=>{
+
+        var region = this.wavesurfer.regions.list[id]
+        return {
+          start: region.start,
+          end:   region.end,
+          data:  region.data
+        }
+      })
+    )
+  }
+
+  this.loadRegions = function(regions){
+
+    var keyframeRegions = this.keyframes
+
+    var localRegions = []
+    if( localStorage.regions ) {
+      localRegions = JSON.parse(localStorage.regions)
+    }
+
+    // combne and deduplicate
+    var combinedRegions = []
+
+    var arr = keyframeRegions.concat(localRegions)
+    var len = arr.length
+
+    while (len--) {
+      var itm = arr[len]
+      unique = true
+      for (var i = combinedRegions.length - 1; i >= 0; i--) {
+        if( combinedRegions[i].start == itm.start ){
+          unique = false
+        }
+      }
+      if( unique ) combinedRegions.unshift(itm)
+    }
+
+    combinedRegions.forEach((region) => {
+      this.wavesurfer.addRegion({
+        start:  region.start,
+        end:    region.end,
+        data:   region.data,
+        drag:   false,
+        resize: false
+      })
+    })
+  }
+
+  this.updateSequence = () => {
+
+    this.sequence = []
+
+    var regions = this.wavesurfer.regions.list
+    for( var key in regions ){    
+      // convert regions to commands and add to sequence
+      var command = {
+        time: regions[key].start,
+        code: regions[key].data.code
+      }
+      this.sequence.push(command)
+    }
+
+    this.sequence.sort(function(a,b){
+      return a.time > b.time
+    })
+
+    // update sequence cursor
+    this.sequenceCursor = 0
+    var playheadTime = this.wavesurfer.getCurrentTime()
+
+    for (var i = 0; i < this.sequence.length; i++) {
+      var commandTime = this.sequence[this.sequenceCursor].time
+      if( commandTime < playheadTime ){
+        this.sequenceCursor++
+      }else{
+        break
+      }
+    }
+  }
+
+  this.editCode = function(region, seek = true) {
+
+    if( !this.editorOpen ) return
+    if(!region) return
+
+    // remove active class from all regions
+    _regions = this._editor.querySelectorAll('region')
+    for (var i = _regions.length - 1; i >= 0; i--) {
+      _regions[i].classList.remove('active')
+    }
+    
+    region.element.classList.add('active')
+
+    // seek to region start
+    if( seek ){
+      this.wavesurfer.seekAndCenter( (region.start / this.wavesurfer.getDuration()))  
+    }
+    
+
+    // show the code for this region
+    this._code.value = region.data.code
+
+    // set active region
+    this.activeRegion = region
+    
+  }
+
+  this.getNextRegion = function(){
+
+    if( !this.editorOpen ) return
+
+    var currentTime = this.wavesurfer.getCurrentTime()
+    var regionsAfter = []
+
+    for( var key in this.wavesurfer.regions.list ){
+      var region = this.wavesurfer.regions.list[key]
+      if( region.start > currentTime ) regionsAfter.push(region)
+    }
+
+    regionsAfter.sort(function(a,b){
+      return a.start > b.start
+    })  
+
+    return regionsAfter[0]
+  }
+
+
+  this.getPrevRegion = function(){
+
+    if( !this.editorOpen ) return
+
+    var currentTime = this.wavesurfer.getCurrentTime()
+    var regionsBefore = []
+
+    for( var key in this.wavesurfer.regions.list ){
+      var region = this.wavesurfer.regions.list[key]
+      if( region.start < currentTime ) regionsBefore.push(region)
+    }
+
+    regionsBefore.sort(function(a,b){
+      return a.start < b.start
+    })
+
+    return regionsBefore[0]
+  }
+
+  /*
+
+  ██╗    ██╗ █████╗ ██╗   ██╗███████╗███████╗██╗   ██╗██████╗ ███████╗███████╗██████╗ 
+  ██║    ██║██╔══██╗██║   ██║██╔════╝██╔════╝██║   ██║██╔══██╗██╔════╝██╔════╝██╔══██╗
+  ██║ █╗ ██║███████║██║   ██║█████╗  ███████╗██║   ██║██████╔╝█████╗  █████╗  ██████╔╝
+  ██║███╗██║██╔══██║╚██╗ ██╔╝██╔══╝  ╚════██║██║   ██║██╔══██╗██╔══╝  ██╔══╝  ██╔══██╗
+  ╚███╔███╔╝██║  ██║ ╚████╔╝ ███████╗███████║╚██████╔╝██║  ██║██║     ███████╗██║  ██║
+   ╚══╝╚══╝ ╚═╝  ╚═╝  ╚═══╝  ╚══════╝╚══════╝ ╚═════╝ ╚═╝  ╚═╝╚═╝     ╚══════╝╚═╝  ╚═╝
+                                                                                      
+  */
+
+  var waveHeight = 100
+  if( !this.editorOpen ){
+    waveHeight = 50
+  }
+
+  var waveColor     = args.waveColor || '#3AEAD2'
+  var progressColor = args.progressColor || '#0c9fa7'
+
+  this.wavesurfer = WaveSurfer.create({
+      container:     '#cf-waveform',
+      height:        waveHeight,
+      scrollParent:  true,
+      normalize:     true,
+      waveColor:     waveColor,
+      progressColor: progressColor,
+      barWidth:      1,
+      cursorColor:   '#fff',
+      plugins: [WaveSurfer.cursor.create(),WaveSurfer.regions.create()]
+  })
+
+  this.wavesurfer.load(this.audioPath)
+
+  this.wavesurfer.on('ready', (e) =>{
+    this.wavesurfer.zoom(this.zoom)
+
+    // load regions from localstorage and keyframes
+    this.loadRegions()
+
+    // build the sequence
+    this.updateSequence()
+  })
+
+  this.wavesurfer.on('region-click', (region) => {
+    this.editCode(region)
+    this.updateSequence()
+  })
+
+  this.wavesurfer.on('seek', () => {
+    this.updateSequence()
+  })
+
+  this.wavesurfer.on('audioprocess', () => {
+    var time    = this.wavesurfer.getCurrentTime()
+    var command = this.sequence[this.sequenceCursor]
+    if( !command ) return
+    if( time > command.time ){
+      this.sequenceCursor++
+      eval(command.code)
+
+      // find the region to show
+      var regions = this.wavesurfer.regions.list
+      for( var key in regions){
+        if( regions[key].start == command.time ){
+
+          this.editCode(regions[key], false)
+          break
+        }
+      }
+
+    }
+  })
+
+
+}

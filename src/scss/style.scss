@@ -1,0 +1,144 @@
+#cf-editor{
+  background-color: #222;
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  font-family: monaco, monospace;
+  -webkit-font-smoothing:antialiased;
+  
+  #cf-waveform{
+    height: 150px;
+
+    &:focus, &:active{
+      outline:none;
+      background-color: #282828;
+    }
+
+    >wave{
+      height: 150px!important;
+      
+      canvas{
+        height: 100px!important;
+      }
+    }
+  }
+
+  &.closed{
+    #cf-waveform{
+      height: 70px;
+
+      >wave{
+        height: 70px!important;
+        
+        canvas{
+          height: 50px!important;
+        }
+      }
+    }
+    region{
+      display: none;
+    }    
+  }
+
+  region.wavesurfer-region{
+    background-color: #fff!important;
+    cursor: pointer;
+    &:after{
+      content:'';
+      display: block;
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      cursor: pointer;
+
+      width: 0;
+      height: 0;
+      border-style: solid;
+      border-width: 30px 0 0 30px;
+      border-color: transparent transparent transparent #fff;
+    }
+
+    &.active{
+      background-color: violet!important;
+      &:after{
+        border-color: transparent transparent transparent violet;
+      }
+    }
+  }
+
+  .code-form{
+    display: flex;
+  }
+
+  textarea#code{
+    width: 100%;
+    resize:none;
+    background-color: #222;
+    padding: 10px;
+    font-family: monospace;
+    color:#fff;
+    &:focus, &:active{
+      outline:none;
+      background-color: #333;
+    }
+  }
+
+  .controls{
+    a{
+      color:#fff;
+      text-decoration: none;
+      background-color: #333;
+      display: block;
+      text-align: center;
+      padding: 10px;
+      text-transform: uppercase;
+      border-bottom: 1px solid #ccc;
+      font-size: 12px;
+    }
+  }
+}
+
+body.party{
+  animation-name: party;
+  animation-duration: 5s;
+  animation-delay: 0s;
+  animation-iteration-count: infinite;
+  animation-timing-function: linear;
+  // animation-direction: alternate;
+  animation-fill-mode:both;
+
+  @keyframes party {
+    0% {
+      background-color:#F0FE78
+    }
+
+    30% {
+      background-color:#6DD461
+    }
+
+    70% {
+      background-color: #FF8474;
+    }
+
+    100% {
+      background-color: #F0FE78;
+    }
+  }
+}
+
+#example{
+  width: 100vw;
+  height: 50vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: absolute;
+  top: 0;
+  left: 0;
+  font-size: 24px;
+  text-align: center;
+  padding: 40px;
+  box-sizing:border-box;
+  font-family: monaco;
+}
