@@ -1,4 +1,4 @@
-#cf-editor{
+#ckf-editor{
   background-color: #222;
   position: fixed;
   bottom: 0;
@@ -6,8 +6,18 @@
   width: 100%;
   font-family: monaco, monospace;
   -webkit-font-smoothing:antialiased;
+
+  .ckf-label{
+    position: absolute;
+    bottom: 100%;
+    left: 0;
+    font-size: 10px;
+    background-color: inherit;
+    color:#fff;
+    padding: 0 5px 0 2px;
+  }
   
-  #cf-waveform{
+  #ckf-waveform{
     height: 150px;
 
     &:focus, &:active{
@@ -25,7 +35,7 @@
   }
 
   &.closed{
-    #cf-waveform{
+    #ckf-waveform{
       height: 70px;
 
       >wave{
@@ -82,6 +92,9 @@
       outline:none;
       background-color: #333;
     }
+    &.error{
+      color:#ff6666;
+    }
   }
 
   .controls{
@@ -94,7 +107,8 @@
       padding: 10px;
       text-transform: uppercase;
       border-bottom: 1px solid #ccc;
-      font-size: 12px;
+      font-size: 10px;
+      width: 140px;
     }
   }
 }

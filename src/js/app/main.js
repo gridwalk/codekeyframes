@@ -6,6 +6,8 @@ function CodeKeyframes(args){
   this.audioPath  = args.audioPath
   this.editorOpen = args.editorOpen || false
   this.keyframes  = args.keyframes  || []
+  this.label      = args.label
+  this.autoplay   = args.autoplay   || false
 
   this.activeRegion = null
   this.skipLength   = 1
@@ -16,8 +18,8 @@ function CodeKeyframes(args){
   this.sequenceNextTime = null
   
   document.querySelector('body').insertAdjacentHTML('beforeend',`
-    <div id="cf-editor">
-      <div id="cf-waveform" tabindex="0"></div>
+    <div id="ckf-editor">
+      <div id="ckf-waveform" tabindex="0"></div>
       <form class="code-form">
         <textarea name="code" id="code" cols="30" rows="10"></textarea>
         <div class="controls">
@@ -26,11 +28,18 @@ function CodeKeyframes(args){
       </form>
     </div>`)
 
-  this._editor       = document.querySelector('#cf-editor')
-  this._waveform     = document.querySelector('#cf-editor #waveform')
-  this._codeForm     = document.querySelector('#cf-editor .code-form')
-  this._code         = document.querySelector('#cf-editor #code')
-  this._renderButton = document.querySelector('#cf-editor .render')
+  this._editor       = document.querySelector('#ckf-editor')
+  this._waveform     = document.querySelector('#ckf-editor #waveform')
+  this._codeForm     = document.querySelector('#ckf-editor .code-form')
+  this._code         = document.querySelector('#ckf-editor #code')
+  this._renderButton = document.querySelector('#ckf-editor .render')
+
+  if( this.label ){
+    _label = document.createElement('div')
+    _label.innerHTML = this.label
+    _label.classList.add('ckf-label')
+    this._editor.appendChild(_label)
+  }
 
   if( !this.editorOpen ){
     this._editor.classList.add('closed')
@@ -122,7 +131,10 @@ function CodeKeyframes(args){
           start:  this.wavesurfer.getCurrentTime(),
           end:    this.wavesurfer.getCurrentTime()+0.1,
           drag:   false,
-          resize: false
+          resize: false,
+          data:{
+            code:this._code.value
+          }
         })
 
         this.editCode(region)
@@ -133,6 +145,7 @@ function CodeKeyframes(args){
       // space
       32:()=>{
         this.wavesurfer.playPause()
+        this._code.classList.remove('error')
       },
 
       // page up
@@ -359,7 +372,7 @@ function CodeKeyframes(args){
   var progressColor = args.progressColor || '#0c9fa7'
 
   this.wavesurfer = WaveSurfer.create({
-      container:     '#cf-waveform',
+      container:     '#ckf-waveform',
       height:        waveHeight,
       scrollParent:  true,
       normalize:     true,
@@ -380,6 +393,11 @@ function CodeKeyframes(args){
 
     // build the sequence
     this.updateSequence()
+
+    // autoplay
+    if(this.autoplay){
+      this.wavesurfer.play()
+    }
   })
 
   this.wavesurfer.on('region-click', (region) => {
@@ -397,13 +415,21 @@ function CodeKeyframes(args){
     if( !command ) return
     if( time > command.time ){
       this.sequenceCursor++
-      eval(command.code)
+
+      this._code.classList.remove('error')
+      
+      try{
+        eval(command.code)
+      } catch(error){
+        this._code.classList.add('error')
+        console.log(error)
+      }
+      
 
       // find the region to show
       var regions = this.wavesurfer.regions.list
       for( var key in regions){
         if( regions[key].start == command.time ){
-
           this.editCode(regions[key], false)
           break
         }
