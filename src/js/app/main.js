@@ -269,7 +269,9 @@ function CodeKeyframes(args){
     }
 
     this.sequence.sort(function(a,b){
-      return a.time > b.time
+      if( a.time > b.time ) return 1
+      if( a.time < b.time ) return -1
+      if( a.time == b.time ) return 0
     })
 
     // update sequence cursor
