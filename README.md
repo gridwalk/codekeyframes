@@ -37,6 +37,8 @@ Make sure you click the waveform before using keyboard controls. This choice was
 `Space` : Play / Pause<br>
 `Enter` : Add keyframe<br>
 `Page Up & Page Down` : Jump between keyframes
+`[ and ]` : Jump between keyframes
+`Alt + Left or Right` : Nudge active keyframe
 
 ## Acknowledgements
 
