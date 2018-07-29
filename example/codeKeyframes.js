@@ -32,6 +32,7 @@ function CodeKeyframes(args){
   this.activeRegion = null
   this.skipLength   = 1
   this.zoom         = 30
+  this.nudging      = false
 
   this.sequence         = []
   this.sequenceCursor   = 0
@@ -90,6 +91,7 @@ function CodeKeyframes(args){
     this.activeRegion.data.code = this._code.value
     this.saveRegions()
     this.updateSequence()
+    this.runRegionCode(this.activeRegion)
   }
 
   this._code.onkeydown = (e) => {
@@ -116,15 +118,32 @@ function CodeKeyframes(args){
     this._code.value = JSON.stringify(keyframes)
   }
 
-  document.onkeydown = (e) =>{
+  this._editor.onkeydown = (e) =>{
+
+    console.log(e.which)
 
     var keycodes = {
 
       // left
-      37:()=>{ this.wavesurfer.skip(this.skipLength*-1) },
+      37:()=>{ 
+
+        if( this.nudging ){
+          this.nudgeActiveRegion('left')
+        }else{
+          this.wavesurfer.skip(this.skipLength*-1)  
+        }
+
+        
+      },
 
       // right
-      39:()=>{ this.wavesurfer.skip(this.skipLength) },
+      39:()=>{
+        if( this.nudging ){
+          this.nudgeActiveRegion('right')
+        }else{ 
+          this.wavesurfer.skip(this.skipLength)
+        }
+      },
 
       // up
       38:()=>{ 
@@ -141,6 +160,13 @@ function CodeKeyframes(args){
       // shift
       16:()=>{
         this.skipLength = 0.1
+        e.preventDefault()
+      },
+
+      // alt
+      18:()=>{
+        this.nudging = true
+        // alert(this.nudging)
         e.preventDefault()
       },
 
@@ -164,6 +190,9 @@ function CodeKeyframes(args){
 
       // space
       32:()=>{
+
+        console.log("PLAYPAUSE")
+
         this.wavesurfer.playPause()
         this._code.classList.remove('error')
       },
@@ -178,8 +207,25 @@ function CodeKeyframes(args){
         this.editCode( this.getPrevRegion() )
       },
 
+      // left bracket
+      219:()=>{
+        this.editCode( this.getPrevRegion() )
+      },
+
+      // right bracket
+      221:()=>{
+        this.editCode( this.getNextRegion() )
+      },
+
       // delete
       46:()=>{
+        this.activeRegion.remove()
+        this.saveRegions()
+        this.updateSequence()
+      },
+
+      // delete (backspace)
+      8:()=>{
         this.activeRegion.remove()
         this.saveRegions()
         this.updateSequence()
@@ -200,7 +246,12 @@ function CodeKeyframes(args){
       // shift
       16:()=>{
         this.skipLength = 1
-      }
+      },
+
+      // alt
+      18:()=>{
+        this.nudging = false
+      },
     }
 
     if( keycodes[e.which] ){
@@ -308,10 +359,33 @@ function CodeKeyframes(args){
     }
   }
 
+  this.nudgeActiveRegion = (direction) => {
+
+    region = this.activeRegion
+    nudgeAmount = (direction == 'left') ? -.1 : .1
+
+    this.activeRegion = this.wavesurfer.addRegion({
+      start:  region.start + nudgeAmount,
+      end:    region.end +nudgeAmount,
+      data:   region.data,
+      drag:   false,
+      resize: false
+    })
+
+    this.activeRegion.element.classList.add('active')
+    region.remove()
+    this.saveRegions()
+
+  }
+
   this.editCode = function(region, seek = true) {
 
-    if( !this.editorOpen ) return
     if(!region) return
+
+    // execute the keyframe code
+    this.runRegionCode(region)
+
+    if( !this.editorOpen ) return
 
     // remove active class from all regions
     _regions = this._editor.querySelectorAll('region')
@@ -325,7 +399,6 @@ function CodeKeyframes(args){
     if( seek ){
       this.wavesurfer.seekAndCenter( (region.start / this.wavesurfer.getDuration()))  
     }
-    
 
     // show the code for this region
     this._code.value = region.data.code
@@ -334,6 +407,17 @@ function CodeKeyframes(args){
     this.activeRegion = region
     
   }
+
+  this.runRegionCode = function(region){
+    this._code.classList.remove('error')
+      
+    try{
+      eval(region.data.code)
+    } catch(error){
+      this._code.classList.add('error')
+      console.log(error)
+    }
+  },
 
   this.getNextRegion = function(){
 
@@ -448,17 +532,7 @@ function CodeKeyframes(args){
     var command = this.sequence[this.sequenceCursor]
     if( !command ) return
     if( time > command.time ){
-      this.sequenceCursor++
-
-      this._code.classList.remove('error')
-      
-      try{
-        eval(command.code)
-      } catch(error){
-        this._code.classList.add('error')
-        console.log(error)
-      }
-      
+      this.sequenceCursor++      
 
       // find the region to show
       var regions = this.wavesurfer.regions.list
@@ -471,6 +545,4 @@ function CodeKeyframes(args){
 
     }
   })
-
-
 }
