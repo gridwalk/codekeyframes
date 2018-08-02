@@ -52,8 +52,10 @@
   }
 
   region.wavesurfer-region{
-    background-color: #fff!important;
+    background-color: transparent!important;
+    border-left:2px solid #fff;
     cursor: pointer;
+
     &:after{
       content:'';
       display: block;
@@ -70,7 +72,7 @@
     }
 
     &.active{
-      background-color: violet!important;
+      border-left:2px solid violet;
       &:after{
         border-color: transparent transparent transparent violet;
       }

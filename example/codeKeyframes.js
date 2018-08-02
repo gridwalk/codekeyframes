@@ -33,6 +33,7 @@ function CodeKeyframes(args){
   this.skipLength   = 1
   this.zoom         = 30
   this.nudging      = false
+  this.nudgeMult    = 1
 
   this.sequence         = []
   this.sequenceCursor   = 0
@@ -118,7 +119,9 @@ function CodeKeyframes(args){
     this._code.value = JSON.stringify(keyframes)
   }
 
-  this._editor.onkeydown = (e) =>{
+
+
+  document.addEventListener('keydown', (e) => {
 
     console.log(e.which)
 
@@ -148,12 +151,14 @@ function CodeKeyframes(args){
       // up
       38:()=>{ 
         this.zoom += 0.5
+        this.nudgeMult = this.nudgeMult * .985
         this.wavesurfer.zoom(this.zoom)
       },
 
       // down
       40:()=>{ 
         this.zoom -= 0.5
+        this.nudgeMult = this.nudgeMult * 1.025
         this.wavesurfer.zoom(this.zoom)
       },
 
@@ -190,9 +195,6 @@ function CodeKeyframes(args){
 
       // space
       32:()=>{
-
-        console.log("PLAYPAUSE")
-
         this.wavesurfer.playPause()
         this._code.classList.remove('error')
       },
@@ -238,9 +240,9 @@ function CodeKeyframes(args){
       keycodes[e.which]()
     }
 
-  }
+  })
 
-  this._editor.onkeyup = (e) =>{
+  document.addEventListener('keyup', (e) =>{
 
     var keycodes = {
       // shift
@@ -257,7 +259,7 @@ function CodeKeyframes(args){
     if( keycodes[e.which] ){
       keycodes[e.which]()
     }
-  }
+  })
 
 
   /*
@@ -362,7 +364,11 @@ function CodeKeyframes(args){
   this.nudgeActiveRegion = (direction) => {
 
     region = this.activeRegion
-    nudgeAmount = (direction == 'left') ? -.1 : .1
+
+    nudgeAmount = .1 * this.nudgeMult
+    if( direction == 'left' ) nudgeAmount = nudgeAmount * -1
+
+    // nudgeAmount = (direction == 'left') ? -.1 : .1
 
     this.activeRegion = this.wavesurfer.addRegion({
       start:  region.start + nudgeAmount,
