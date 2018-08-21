@@ -25,6 +25,7 @@ function CodeKeyframes(args){
         <textarea name="code" id="code" cols="30" rows="10"></textarea>
         <div class="controls">
           <a href="#" class="render">Export Keyframes</a>
+          <a href="#" class="close">Close Editor</a>
         </div>
       </form>
     </div>`)
@@ -34,6 +35,7 @@ function CodeKeyframes(args){
   this._codeForm     = document.querySelector('#ckf-editor .code-form')
   this._code         = document.querySelector('#ckf-editor #code')
   this._renderButton = document.querySelector('#ckf-editor .render')
+  this._closeButton  = document.querySelector('#ckf-editor .close')
 
   if( this.label ){
     _label = document.createElement('div')
@@ -96,6 +98,11 @@ function CodeKeyframes(args){
 
     this.activeRegion = null
     this._code.value = JSON.stringify(keyframes)
+  }
+
+  this._closeButton.onclick = (e) => {
+    this._editor.classList.add('closed')
+    this._codeForm.remove()
   }
 
 
@@ -468,10 +475,10 @@ function CodeKeyframes(args){
 
   var waveHeight = 100
   if( !this.editorOpen ){
-    waveHeight = 50
+    waveHeight = 30
   }
 
-  var waveColor     = args.waveColor || '#3AEAD2'
+  var waveColor     = args.waveColor     || '#3AEAD2'
   var progressColor = args.progressColor || '#0c9fa7'
 
   this.wavesurfer = WaveSurfer.create({
