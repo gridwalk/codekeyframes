@@ -5,8 +5,8 @@ A browser based tool for running JavaScript code at specific frames of an audio 
 ## How-To
 
 1. Include the js file and the css file from the repository:
-- [codeKeyframes.min.js](https://github.com/gridwalk/codekeyframes/releases/download/v1.0.1/codeKeyframes.min.js)
-- [codeKeyframes.css](https://github.com/gridwalk/codekeyframes/releases/download/v1.0.1/codeKeyframes.css)
+- [codeKeyframes.min.js](https://github.com/gridwalk/codekeyframes/releases/download/v1.0.4/codeKeyframes.min.js)
+- [codeKeyframes.css](https://github.com/gridwalk/codekeyframes/releases/download/v1.0.4/codeKeyframes.css)
 
 2. Initialize an instance of CodeKeyframes:
 
