@@ -2,6 +2,10 @@
 
 A browser based tool for running JavaScript code at specific frames of an audio track. This is useful for creating interactive music videos, making subtitles, or anything else where audiovisual synchronization is required.
 
+## Demo
+
+[Minimal Demo](http://gridav.net/codekeyframes-demo)
+
 ## How-To
 
 1. Include the js file and the css file from the repository:
