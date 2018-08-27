@@ -17,6 +17,7 @@ var ckf = new CodeKeyframes({
   waveColor:     '#3AEAD2',
   progressColor: '#0c9fa7',
   bgColor:       '#222',
+  label:         'Text that appears at the top left of the waveform.',
   keyframes:[]   // paste in after exporting keyframes
 })
 ```
