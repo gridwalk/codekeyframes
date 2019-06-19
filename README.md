@@ -22,7 +22,13 @@ var ckf = new CodeKeyframes({
   progressColor: '#0c9fa7',
   bgColor:       '#222',
   label:         'Text that appears at the top left of the waveform.',
-  keyframes:[]   // paste in after exporting keyframes
+  keyframes:     [], // paste in after exporting keyframes
+  autoplay:      false, // doesn't always work due to browser limitations
+  onCanPlay:     function(){
+    // playback can start now
+    // call this to start playback:
+    // ckf.wavesurfer.play()
+  }
 })
 ```
 
@@ -41,8 +47,8 @@ Make sure you click the waveform before using keyboard controls. This choice was
 `Up & Down` : Zoom waveform<br>
 `Space` : Play / Pause<br>
 `Enter` : Add keyframe<br>
-`Page Up & Page Down` : Jump between keyframes
-`[ and ]` : Jump between keyframes
+`Page Up & Page Down` : Jump between keyframes<br>
+`[ and ]` : Jump between keyframes<br>
 `Alt + Left or Right` : Nudge active keyframe
 
 ## Acknowledgements
