@@ -63,9 +63,12 @@
       waveColor:     '#3AEAD2',
       progressColor: '#0c9fa7',
       bgColor:       '#222',
-      label:         'Tracktitle Music: Artistname Visuals: Artistname',
-      autoplay:      true,
-      keyframes:     [] // paste in after exporting keyframes
+      label:         'Track title by ArtistName | Visual: ArtistName',
+      autoplay:      false,
+      keyframes:     [{"start":2.6663112837830205,"end":2.7663112837830206,"data":{"code":"document.querySelector('#example').innerHTML = 'test1'"}},{"start":5.4326092407079045,"end":5.532609240707904,"data":{"code":"document.querySelector('#example').innerHTML = 'test2'"}},{"start":8.03226274239635,"end":8.13226274239635,"data":{"code":"document.querySelector('#example').innerHTML = 'test3'"}}], // paste in after exporting keyframes,
+      onCanPlay: function(){
+      	// alert('can play')
+      }
     })
   </script>
 

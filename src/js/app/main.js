@@ -7,6 +7,7 @@ function CodeKeyframes(args){
   this.keyframes  = args.keyframes  || []
   this.label      = args.label
   this.autoplay   = args.autoplay   || false
+  this.onCanPlay  = args.onCanPlay  || function(){}
 
   this.activeRegion = null
   this.skipLength   = 1
@@ -17,7 +18,8 @@ function CodeKeyframes(args){
   this.sequence         = []
   this.sequenceCursor   = 0
   this.sequenceNextTime = null
-  
+
+
   document.querySelector('body').insertAdjacentHTML('beforeend',`
     <div id="ckf-editor">
       <div id="ckf-waveform" tabindex="0"></div>
@@ -103,13 +105,13 @@ function CodeKeyframes(args){
   this._closeButton.onclick = (e) => {
     this._editor.classList.add('closed')
     this._codeForm.remove()
+    this.editorOpen = false
   }
-
-
 
   document.addEventListener('keydown', (e) => {
 
-    console.log(e.which)
+
+    // console.log(e.which)
 
     var keycodes = {
 
@@ -219,8 +221,10 @@ function CodeKeyframes(args){
         this.updateSequence()
       },
 
-
     }
+
+    // prevent all key actions except space bar when editor closed
+  	if(!this.editorOpen && e.which !== 32 ) return
 
     if( keycodes[e.which] ){
       keycodes[e.which]()
@@ -229,6 +233,8 @@ function CodeKeyframes(args){
   })
 
   document.addEventListener('keyup', (e) =>{
+
+  	if( !this.editorOpen ) return
 
     var keycodes = {
       // shift
@@ -278,19 +284,20 @@ function CodeKeyframes(args){
 
   this.loadRegions = function(regions){
 
+  	// load regions from saved code in declaration
     var keyframeRegions = this.keyframes
 
+    // load regions from localstorage
     var localRegions = []
-    if( localStorage.regions ) {
+    if( localStorage.regions && this.editorOpen ) {
       localRegions = JSON.parse(localStorage.regions)
     }
 
-    // combne and deduplicate
+    // combine and deduplicate
     var combinedRegions = []
 
     var arr = keyframeRegions.concat(localRegions)
     var len = arr.length
-
     while (len--) {
       var itm = arr[len]
       unique = true
@@ -508,6 +515,8 @@ function CodeKeyframes(args){
     if(this.autoplay){
       this.wavesurfer.play()
     }
+
+    this.onCanPlay()
   })
 
   this.wavesurfer.on('region-click', (region) => {
