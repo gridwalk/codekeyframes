@@ -2,11 +2,15 @@
 
 A browser based tool for running JavaScript code at specific frames of an audio track. This is useful for creating interactive music videos, making subtitles, or anything else where audiovisual synchronization is required.
 
+## Demo
+
+[Minimal Demo](http://gridav.net/codekeyframes-demo)
+
 ## How-To
 
 1. Include the js file and the css file from the repository:
-- [codeKeyframes.min.js](https://github.com/gridwalk/codekeyframes/releases/download/v1.0.1/codeKeyframes.min.js)
-- [codeKeyframes.css](https://github.com/gridwalk/codekeyframes/releases/download/v1.0.1/codeKeyframes.css)
+- [codeKeyframes.min.js](https://github.com/gridwalk/codekeyframes/releases/latest)
+- [codeKeyframes.css](https://github.com/gridwalk/codekeyframes/releases/latest)
 
 2. Initialize an instance of CodeKeyframes:
 
@@ -17,7 +21,14 @@ var ckf = new CodeKeyframes({
   waveColor:     '#3AEAD2',
   progressColor: '#0c9fa7',
   bgColor:       '#222',
-  keyframes:[]   // paste in after exporting keyframes
+  label:         'Text that appears at the top left of the waveform.',
+  keyframes:     [], // paste in after exporting keyframes
+  autoplay:      false, // doesn't always work due to browser limitations
+  onCanPlay:     function(){
+    // playback can start now
+    // call this to start playback:
+    // ckf.wavesurfer.play()
+  }
 })
 ```
 
@@ -36,8 +47,8 @@ Make sure you click the waveform before using keyboard controls. This choice was
 `Up & Down` : Zoom waveform<br>
 `Space` : Play / Pause<br>
 `Enter` : Add keyframe<br>
-`Page Up & Page Down` : Jump between keyframes
-`[ and ]` : Jump between keyframes
+`Page Up & Page Down` : Jump between keyframes<br>
+`[ and ]` : Jump between keyframes<br>
 `Alt + Left or Right` : Nudge active keyframe
 
 ## Acknowledgements
