@@ -8,6 +8,8 @@ function CodeKeyframes(args){
   this.label      = args.label
   this.autoplay   = args.autoplay   || false
   this.onCanPlay  = args.onCanPlay  || function(){}
+  this.onPause    = args.onPause    || function(){}
+  this.onPlay     = args.onPlay     || function(){}
 
   this.activeRegion = null
   this.skipLength   = 1
@@ -502,6 +504,16 @@ function CodeKeyframes(args){
 
   this.wavesurfer.load(this.audioPath)
 
+  // run function passed to codekeyframes on init
+  this.wavesurfer.on('pause', () => {
+ 		this.onPause()
+  })
+
+	// run function passed to codekeyframes on init
+  this.wavesurfer.on('play', () => {
+ 		this.onPlay()
+  })
+
   this.wavesurfer.on('ready', (e) =>{
     this.wavesurfer.zoom(this.zoom)
 
@@ -546,4 +558,5 @@ function CodeKeyframes(args){
 
     }
   })
+
 }
