@@ -110,6 +110,7 @@ gulp.task('lint',function(){
 		.pipe(plumber())
 		.pipe(jshint({
 			'esversion': 6,
+			'evil':true, // allow eval (critical for codekeyframes to work)
 			'asi':true, // allows missing semicolons
 			'sub':true  // allows bracket notation of array items
 		}))

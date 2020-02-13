@@ -7,6 +7,9 @@ function CodeKeyframes(args){
   this.keyframes  = args.keyframes  || []
   this.label      = args.label
   this.autoplay   = args.autoplay   || false
+
+  // event callbacks
+  this.onFrame    = args.onFrame    || function(){}
   this.onCanPlay  = args.onCanPlay  || function(){}
   this.onPause    = args.onPause    || function(){}
   this.onPlay     = args.onPlay     || function(){}
@@ -141,7 +144,7 @@ function CodeKeyframes(args){
       // up
       38:()=>{ 
         this.zoom += 0.5
-        this.nudgeMult = this.nudgeMult * .985
+        this.nudgeMult = this.nudgeMult * 0.985
         this.wavesurfer.zoom(this.zoom)
       },
 
@@ -360,7 +363,7 @@ function CodeKeyframes(args){
 
     region = this.activeRegion
 
-    nudgeAmount = .1 * this.nudgeMult
+    nudgeAmount = 0.1 * this.nudgeMult
     if( direction == 'left' ) nudgeAmount = nudgeAmount * -1
 
     // nudgeAmount = (direction == 'left') ? -.1 : .1
@@ -418,7 +421,7 @@ function CodeKeyframes(args){
       this._code.classList.add('error')
       console.log(error)
     }
-  },
+  }
 
   this.getNextRegion = function(){
 
@@ -541,6 +544,9 @@ function CodeKeyframes(args){
   })
 
   this.wavesurfer.on('audioprocess', () => {
+
+  	this.onFrame()
+
     var time    = this.wavesurfer.getCurrentTime()
     var command = this.sequence[this.sequenceCursor]
     if( !command ) return
