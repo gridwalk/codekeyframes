@@ -45,15 +45,17 @@ function CodeKeyframes(args){
   this.sequenceCursor   = 0
   this.sequenceNextTime = null
 
-
+  // insert editor HTML
   document.querySelector('body').insertAdjacentHTML('beforeend',`
     <div id="ckf-editor">
       <div id="ckf-waveform" tabindex="0"></div>
       <form class="code-form">
-        <textarea name="code" id="code" cols="30" rows="10"></textarea>
+      	<div class="code-editor">
+	        <textarea name="code" id="code" cols="30" rows="10"></textarea>
+      	</div>
         <div class="controls">
           <a href="#" class="render">Export Keyframes</a>
-          <a href="#" class="close">Close Editor</a>
+          <a href="#" class="close">Toggle Editor (E)</a>
         </div>
       </form>
     </div>`)
@@ -62,6 +64,7 @@ function CodeKeyframes(args){
   this._waveform     = document.querySelector('#ckf-editor #waveform')
   this._codeForm     = document.querySelector('#ckf-editor .code-form')
   this._code         = document.querySelector('#ckf-editor #code')
+  this._codeEditor   = document.querySelector('#ckf-editor .code-editor')
   this._renderButton = document.querySelector('#ckf-editor .render')
   this._closeButton  = document.querySelector('#ckf-editor .close')
 
@@ -72,9 +75,11 @@ function CodeKeyframes(args){
     this._editor.appendChild(_label)
   }
 
+  // immediately close editor if needed
   if( !this.editorOpen ){
-    this._editor.classList.add('closed')
-    this._codeForm.remove()
+  	this.toggleEditor()
+    // this._editor.classList.add('closed')
+    // this._codeForm.remove()
   }
 
   
@@ -126,12 +131,14 @@ function CodeKeyframes(args){
 
     this.activeRegion = null
     this._code.value = JSON.stringify(keyframes)
+    this._code.select()
+
+    this._codeEditor.classList.add('exported')
+
   }
 
   this._closeButton.onclick = (e) => {
-    this._editor.classList.add('closed')
-    this._codeForm.remove()
-    this.editorOpen = false
+  	this.toggleEditor()
   }
 
   document.addEventListener('keydown', (e) => {
@@ -247,10 +254,15 @@ function CodeKeyframes(args){
         this.updateSequence()
       },
 
+      // E (open editor)
+      69:()=>{
+        this.toggleEditor()
+      },
+
     }
 
     // prevent all key actions except space bar when editor closed
-  	if(!this.editorOpen && e.which !== 32 ) return
+  	if(!this.editorOpen && e.which !== 32 && e.which !== 69 ) return
 
     if( keycodes[e.which] ){
       keycodes[e.which]()
@@ -407,6 +419,9 @@ function CodeKeyframes(args){
 
     if(!region) return
 
+    // turn off copy keyframes message in editor
+    this._codeEditor.classList.remove('exported')
+
     // execute the keyframe code
     this.runRegionCode(region)
 
@@ -493,6 +508,13 @@ function CodeKeyframes(args){
     })
 
     return regionsBefore[0]
+  }
+
+  this.toggleEditor = () => {
+
+  	this._editor.classList.toggle('closed')
+    this.editorOpen = !this.editorOpen
+
   }
 
   /*

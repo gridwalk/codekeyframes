@@ -58,7 +58,7 @@
 
   <script>
     var ckf = new CodeKeyframes({
-      audioPath:     'audio/KIYOKO.mp3',
+      audioPath:     './audio/KIYOKO.mp3',
       editorOpen:    true,
       waveColor:     '#3AEAD2',
       progressColor: '#0c9fa7',
@@ -68,6 +68,19 @@
       keyframes:     [{"start":2.6663112837830205,"end":2.7663112837830206,"data":{"code":"document.querySelector('#example').innerHTML = 'test1'"}},{"start":5.4326092407079045,"end":5.532609240707904,"data":{"code":"document.querySelector('#example').innerHTML = 'test2'"}},{"start":8.03226274239635,"end":8.13226274239635,"data":{"code":"document.querySelector('#example').innerHTML = 'test3'"}}], // paste in after exporting keyframes,
       onCanPlay: function(){
       	// alert('can play')
+      	console.log('onCanPlay triggered')
+      },
+
+      onPlay: function(){
+      	console.log('onPlay triggered')
+      },
+
+      onPause: function(){
+      	console.log('onPause triggered')
+      },
+
+      onFrame: function(){
+      	console.log('onFrame triggered, do/render something')
       }
     })
   </script>

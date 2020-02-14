@@ -19,6 +19,7 @@
   
   #ckf-waveform{
     height: 150px;
+    position: relative;
 
     &:focus, &:active{
       outline:none;
@@ -48,7 +49,11 @@
     }
     region{
       display: none;
-    }    
+    }
+
+    .code-form{
+    	display: none;
+    }
   }
 
   region.wavesurfer-region{
@@ -79,11 +84,33 @@
     }
   }
 
+  .code-editor{
+    width: 100%;
+    position: relative;
+    &.exported{
+    	#code{
+    		padding-top: 30px;
+    	}
+    	&:before{
+	    	content:'Copy this code into the "keyframes" parameter in your initialization script:';
+	    	position: absolute;
+	    	top: 0;
+	    	left: 0;
+	    	width: calc(100% - 20px);
+	    	font-size: 11px;
+	    	padding: 3px 10px;
+	    	background-color: #fff;
+	    }
+	  }
+  }
+
   .code-form{
     display: flex;
+    margin: 0;
   }
 
   textarea#code{
+  	height: 150px;
     width: 100%;
     resize:none;
     background-color: #222;
