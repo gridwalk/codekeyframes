@@ -7,55 +7,75 @@
   <style>
 
     /* these styles are just for the example */
-    #example{
-      width: 100vw;
-      height: 50vh;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      position: absolute;
-      top: 0;
-      left: 0;
-      font-size: 24px;
-      text-align: center;
-      padding: 40px;
-      box-sizing:border-box;
-      font-family: monaco;
+    body{
+    	background-color: #000;
+    	overflow: hidden;
+    	color:#fff;
+    	font-family: monospace;
     }
-    body.party{
-      animation-name: party;
-      animation-duration: 5s;
-      animation-delay: 0s;
-      animation-iteration-count: infinite;
-      animation-timing-function: linear;
-      animation-fill-mode:both;
+
+    .example{
+			position: fixed;
+			top: 20px;
+			left: 20px;
+			z-index: 2;
     }
-    @keyframes party {
-      0% {
-        background-color:#F0FE78
-      }
-
-      30% {
-        background-color:#6DD461
-      }
-
-      70% {
-        background-color: #FF8474;
-      }
-
-      100% {
-        background-color: #F0FE78;
-      }
-    }
+    
   </style>
 </head>
 
 <body>
 
-  <div id="example"></div>
+	<div class="example">Press space to toggle playback</div>
+  
+  <!-- Three JS used for example. Remove this line if your project doesn't use Three JS -->
+	<script src='https://cdn.jsdelivr.net/gh/mrdoob/three.js@r109/build/three.min.js'></script>
 
+	<!-- Set up the Three JS scene, again just for this example -->
+	<script>
+		var winW = window.innerWidth
+		var winH = window.innerHeight
+
+		var scene = new THREE.Scene()
+		var camera = new THREE.PerspectiveCamera(50, winW / winH, 0.01, 20)
+
+		var renderer = new THREE.WebGLRenderer({
+		  antialias: false
+		})
+		renderer.setSize(winW, winH)
+		document.body.appendChild(renderer.domElement)
+		
+		// create pyramids
+		var radius = 4
+		var height = 5
+
+		var geometry = new THREE.CylinderGeometry(0, radius, height, 4, 1)
+		var material = new THREE.MeshNormalMaterial()
+		var pyramid  = new THREE.Mesh(geometry, material)
+		var pyramid2 = new THREE.Mesh(geometry, material)
+		
+		scene.add(pyramid)
+		scene.add(pyramid2)
+
+		pyramid2.rotation.z = 0.1
+
+		// Make a cube
+		var boxGeometry = new THREE.CubeGeometry(7.5, 7.5, 7.5)
+		var boxMaterial = new THREE.MeshBasicMaterial({
+		  color: '#fff',
+		  wireframe: true,
+		})
+		var boxMesh = new THREE.Mesh(boxGeometry, boxMaterial)
+		scene.add(boxMesh)
+
+		camera.position.z = 15
+
+	</script>
+
+	<!-- Required inclusion of codekeyframes -->
   <script src='codeKeyframes.js'></script>
 
+	<!-- CKF Initialization -->
   <script>
     var ckf = new CodeKeyframes({
       audioPath:     './audio/KIYOKO.mp3',
@@ -63,9 +83,10 @@
       waveColor:     '#3AEAD2',
       progressColor: '#0c9fa7',
       bgColor:       '#222',
-      label:         'Track title by ArtistName | Visual: ArtistName',
+      label:         'KIYOKO by EMINA | Visual: d0n.xyz',
       autoplay:      false,
-      keyframes:     [{"start":2.6663112837830205,"end":2.7663112837830206,"data":{"code":"document.querySelector('#example').innerHTML = 'test1'"}},{"start":5.4326092407079045,"end":5.532609240707904,"data":{"code":"document.querySelector('#example').innerHTML = 'test2'"}},{"start":8.03226274239635,"end":8.13226274239635,"data":{"code":"document.querySelector('#example').innerHTML = 'test3'"}}], // paste in after exporting keyframes,
+      keyframes:     [{"start":2.6663112837830205,"end":2.7663112837830206,"data":{"code":"pyramid.rotation.z  = Math.random()*360\npyramid.rotation.y  = Math.random()*360\npyramid2.rotation.z = Math.random()*360\npyramid2.rotation.y = Math.random()*360\nboxMesh.rotation.y  = Math.random()*360"}},{"start":5.4326092407079045,"end":5.532609240707904,"data":{"code":"pyramid.rotation.z  = Math.random()*360\npyramid.rotation.y  = Math.random()*360\npyramid2.rotation.z = Math.random()*360\npyramid2.rotation.y = Math.random()*360\nboxMesh.rotation.y  = Math.random()*360"}},{"start":8.03226274239635,"end":8.13226274239635,"data":{"code":"pyramid.rotation.z  = Math.random()*360\npyramid.rotation.y  = Math.random()*360\npyramid2.rotation.z = Math.random()*360\npyramid2.rotation.y = Math.random()*360\nboxMesh.rotation.y  = Math.random()*360"}},{"start":13.431543092056966,"end":13.531543092056966,"data":{"code":"pyramid.rotation.z  = Math.random()*360\npyramid.rotation.y  = Math.random()*360\npyramid2.rotation.z = Math.random()*360\npyramid2.rotation.y = Math.random()*360\nboxMesh.rotation.y  = Math.random()*360"}},{"start":10.665245135132082,"end":10.765245135132082,"data":{"code":"pyramid.rotation.z  = Math.random()*360\npyramid.rotation.y  = Math.random()*360\npyramid2.rotation.z = Math.random()*360\npyramid2.rotation.y = Math.random()*360\nboxMesh.rotation.y  = Math.random()*360"}}], // paste in after exporting keyframes,
+      
       onCanPlay: function(){
       	// alert('can play')
       	console.log('onCanPlay triggered')
@@ -81,6 +102,17 @@
 
       onFrame: function(){
       	console.log('onFrame triggered, do/render something')
+
+      	// Everything after this line would change based on your project.
+      	// In this example we are updating 3D shapes initialized above
+		    pyramid.rotation.z  += 0.0005
+		    pyramid.rotation.y  += 0.005		  
+		    pyramid2.rotation.z -= 0.0005
+		    pyramid2.rotation.y -= 0.0009
+		   	boxMesh.rotation.y  -= 0.008
+		  
+		  	// do Three JS rendering
+		    renderer.render(scene, camera)
       }
     })
   </script>
