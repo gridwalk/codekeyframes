@@ -16,18 +16,29 @@ A browser based tool for running JavaScript code at specific frames of an audio 
 
 ```javascript
 var ckf = new CodeKeyframes({
-  audioPath:     'audio/yourMusic.mp3',
+  audioPath:     './path/to-audio.mp3',
   editorOpen:    true,
-  waveColor:     '#3AEAD2',
-  progressColor: '#0c9fa7',
-  bgColor:       '#222',
-  label:         'Text that appears at the top left of the waveform.',
-  keyframes:     [], // paste in after exporting keyframes
-  autoplay:      false, // doesn't always work due to browser limitations
-  onCanPlay:     function(){
-    // playback can start now
-    // call this to start playback:
-    // ckf.wavesurfer.play()
+  waveColor:     '#3AEAD2', // wave color right of the playhead
+  progressColor: '#0c9fa7', // wave color left of the playhead
+  bgColor:       '#222',    // color behind waveform
+  label:         'Text that appears above the waveform',
+  autoplay:      false,
+  keyframes:     [], // paste in here after exporting keyframes,
+  
+  onCanPlay: function(){
+  	console.log('onCanPlay triggered')
+  },
+
+  onPlay: function(){
+  	console.log('onPlay triggered')
+  },
+
+  onPause: function(){
+  	console.log('onPause triggered')
+  },
+
+  onFrame: function(){
+  	console.log('onFrame triggered, do/render something')
   }
 })
 ```
@@ -49,10 +60,9 @@ Make sure you click the waveform before using keyboard controls. This choice was
 `Enter` : Add keyframe<br>
 `Page Up & Page Down` : Jump between keyframes<br>
 `[ and ]` : Jump between keyframes<br>
-`Alt + Left or Right` : Nudge active keyframe
+`Alt + Left or Right` : Nudge active keyframe<br>
+`E` : Toggle editor view
 
 ## Acknowledgements
 
 This tool relies hugely on [Wavesurfer](https://wavesurfer-js.org/). Big thanks to [katspaugh](https://github.com/katspaugh/wavesurfer.js) for their work on it.
-
-The repository build structure is based on [Net Art Starter](https://github.com/gridwalk/net-art-starter) by me Donald Hanson. You can learn more about the structure and use it yourself.
