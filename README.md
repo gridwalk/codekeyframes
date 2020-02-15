@@ -1,6 +1,9 @@
 # Code Keyframes
 
-A browser based tool for running JavaScript code at specific frames of an audio track. This is useful for creating interactive music videos, making subtitles, or anything else where audiovisual synchronization is required.
+A browser based tool for running JavaScript code at specific frames of an audio track. This is useful for creating interactive music videos, making animations, or anything else where audiovisual synchronization is required.
+
+![alt text](https://raw.githubusercontent.com/gridwalk/codekeyframes/master/example/poster.png "Codekeyframes Demo Screenshot")
+
 
 ## Demo
 
