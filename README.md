@@ -4,7 +4,7 @@ A browser based tool for running JavaScript code at specific frames of an audio 
 
 ## Demo
 
-[Minimal Demo](http://gridav.net/codekeyframes-demo)
+[Demo](https://gridwalk.github.io/codekeyframes/example/)
 
 ## How-To
 
