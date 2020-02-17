@@ -4,7 +4,6 @@ A browser based tool for running JavaScript code at specific frames of an audio 
 
 ![alt text](https://raw.githubusercontent.com/gridwalk/codekeyframes/master/example/poster.png "Codekeyframes Demo Screenshot")
 
-
 ## Demo
 
 [Demo](https://gridwalk.github.io/codekeyframes/example/)

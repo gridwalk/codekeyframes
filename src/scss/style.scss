@@ -1,4 +1,4 @@
-#ckf-editor{
+.ckf-panel{
   background-color: #222;
   position: fixed;
   bottom: 0;
@@ -17,7 +17,7 @@
     padding: 0 5px 0 2px;
   }
   
-  #ckf-waveform{
+  .ckf-waveform{
     height: 150px;
     position: relative;
 
@@ -36,7 +36,7 @@
   }
 
   &.closed{
-    #ckf-waveform{
+    .ckf-waveform{
       height: 50px;
 
       >wave{
@@ -51,10 +51,11 @@
       display: none;
     }
 
-    .code-form{
+    .ckf-toolbox{
     	display: none;
     }
   }
+
 
   region.wavesurfer-region{
     background-color: transparent!important;
@@ -84,6 +85,10 @@
     }
   }
 
+  .ckf-toolbox{
+  	display: flex;
+  }
+
   .code-editor{
     width: 100%;
     position: relative;
@@ -100,13 +105,9 @@
 	    	font-size: 11px;
 	    	padding: 3px 10px;
 	    	background-color: #fff;
+	    	color:#000;
 	    }
 	  }
-  }
-
-  .code-form{
-    display: flex;
-    margin: 0;
   }
 
   textarea#code{
@@ -124,6 +125,119 @@
     &.error{
       color:#ff6666;
     }
+  }
+
+  .state-editor{
+  	// width: 100%;
+  	max-width: 350px;
+  	// min-width: 300px;
+  	border: 1px solid #666;
+  	border-left:none;
+  	font-size: 10px;
+
+  	>div{
+  		padding: 2.5px 10px 2.5px;
+  		display: flex;
+  		justify-content: flex-end;
+  		height: 16px;
+  		
+  		&.state-header{
+				text-transform: uppercase;
+				font-size: 9px;
+				background-color: #333;
+				color:#888;
+				height: 15px;
+				padding: 0 10px;
+				>*{
+	  			display: flex;
+	  			align-items: center;
+				}
+  		}
+
+  		.smooth{
+  			min-width: 18px;
+  			position: relative;
+  			&:before{
+					content:'';
+					display: block;
+					position: absolute;
+					top: 3px;
+					right: 2px;
+					height: 9px;
+					border:1px dashed #888;
+					transform-origin:0 0;
+					transform:rotate(45deg);
+  			}
+  		}
+
+  		&.state-item{
+  			border-bottom: 1px solid #333;
+  			cursor:pointer;
+  			user-select:none;
+
+  			&:hover{
+  				background-color: #333;
+  			}
+  		}
+
+  		>:first-child{
+  			width: 100%;
+  			max-width: 200px;
+  			min-width: 130px;
+  			margin-right: auto;
+  			display: flex;
+	  		align-items: center;
+  		}
+
+  		>:nth-child(2){
+  			width: 100%;
+  			max-width: 100px;
+  			min-width: 50px;
+  			margin:0 3px 0 0;
+  		}
+
+  		>:nth-child(3){
+  			width: 100%;
+  			max-width: 16px;
+  		}
+  	}
+
+  	input[type=number]{
+  		appearance:none;
+  		border:0;
+  		padding: 0 5px;
+  		background-color: #666;
+  		color:#fff;
+  		font-family:inherit;
+  		&:focus{
+  			outline:none;
+  			background-color: #777;
+  		}
+  	}
+  	input[type=checkbox]{
+  		appearance:none;
+  		border:1px solid #666;
+  		margin: 0;
+  		padding: 0;
+  		cursor:pointer;
+  		position: relative;
+  		&:focus{
+  			outline:none;
+  			border-color:#777;
+  		}
+  		&:checked{
+  			&:before{
+  				content:'x';
+  				color:#fff;
+  				display: block;
+  				width: 100%;
+  				height: 80%;
+  				display: flex;
+  				align-items: center;
+  				justify-content: center;
+  			}
+  		}
+  	}
   }
 
   .controls{

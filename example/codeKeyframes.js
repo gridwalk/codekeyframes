@@ -28,6 +28,7 @@ function CodeKeyframes(args){
   this.keyframes  = args.keyframes  || []
   this.label      = args.label
   this.autoplay   = args.autoplay   || false
+  this.state      = args.state      || {}
 
   // event callbacks
   this.onFrame    = args.onFrame    || function(){}
@@ -47,39 +48,43 @@ function CodeKeyframes(args){
 
   // insert editor HTML
   document.querySelector('body').insertAdjacentHTML('beforeend',`
-    <div id="ckf-editor">
-      <div id="ckf-waveform" tabindex="0"></div>
-      <form class="code-form">
-      	<div class="code-editor">
+    <div class="ckf-panel">
+      <div class="ckf-waveform" tabindex="0"></div>
+      <div class="ckf-toolbox">
+	    	<div class="code-editor">
 	        <textarea name="code" id="code" cols="30" rows="10"></textarea>
-      	</div>
-        <div class="controls">
-          <a href="#" class="render">Export Keyframes</a>
-          <a href="#" class="close">Toggle Editor (E)</a>
-        </div>
-      </form>
+	    	</div>
+	    	<div class="state-editor">
+					<div class="state-header">
+						<span>Name</span>
+						<span>Value</span>
+						<span class="smooth"></span>
+					</div>
+	    	</div>
+	      <div class="controls">
+	        <a href="#" class="render">Export Keyframes</a>
+	        <a href="#" class="close">Toggle Editor (E)</a>
+	      </div>
+      </div>
     </div>`)
 
-  this._editor       = document.querySelector('#ckf-editor')
-  this._waveform     = document.querySelector('#ckf-editor #waveform')
-  this._codeForm     = document.querySelector('#ckf-editor .code-form')
-  this._code         = document.querySelector('#ckf-editor #code')
-  this._codeEditor   = document.querySelector('#ckf-editor .code-editor')
-  this._renderButton = document.querySelector('#ckf-editor .render')
-  this._closeButton  = document.querySelector('#ckf-editor .close')
+  this._panel        = document.querySelector('.ckf-panel')
+  this._code         = document.querySelector('.ckf-panel #code')
+  this._codeEditor   = document.querySelector('.ckf-panel .code-editor')
+  this._stateEditor  = document.querySelector('.ckf-panel .state-editor')
+  this._renderButton = document.querySelector('.ckf-panel .render')
+  this._closeButton  = document.querySelector('.ckf-panel .close')
 
   if( this.label ){
     _label = document.createElement('div')
     _label.innerHTML = this.label
     _label.classList.add('ckf-label')
-    this._editor.appendChild(_label)
+    this._panel.appendChild(_label)
   }
 
   // immediately close editor if needed
   if( !this.editorOpen ){
   	this.toggleEditor()
-    // this._editor.classList.add('closed')
-    // this._codeForm.remove()
   }
 
   
@@ -103,7 +108,15 @@ function CodeKeyframes(args){
 
   // save regions on keyup
   this._code.onkeyup = (e) => {
-    this.activeRegion.data.code = this._code.value
+
+  	console.log('code keyup')
+  	
+  	if( !this.activeRegion ){
+  		console.warn('No keyframe selected')
+  		return
+  	}
+
+  	this.activeRegion.data.code = this._code.value
     this.saveRegions()
     this.updateSequence()
     this.runRegionCode(this.activeRegion)
@@ -117,14 +130,28 @@ function CodeKeyframes(args){
     e.stopPropagation()
   }  
 
+  this._stateEditor.oninput = (e) => {
+
+  	var stateValue = e.target.value
+  	var stateKey   = e.target.getAttribute('key')
+
+  	if( !this.activeRegion.data.state ) this.activeRegion.data.state = {}
+
+  	if( stateKey == null ) return
+
+  	this.activeRegion.data.state[stateKey] = stateValue
+  	this.saveRegions()
+    this.runRegionCode(this.activeRegion)
+  }
+
   this._renderButton.onclick = (e) => {
     var keyframes = []
     var regions = this.wavesurfer.regions.list
     for( var key in this.wavesurfer.regions.list ){
       var region = this.wavesurfer.regions.list[key]
       keyframes.push({
-        start:region.start,
-        end:region.end,
+        start:region.start.toFixed(2),
+        end:region.end.toFixed(2),
         data:region.data
       })
     }
@@ -143,21 +170,16 @@ function CodeKeyframes(args){
 
   document.addEventListener('keydown', (e) => {
 
-
-    // console.log(e.which)
-
-    var keycodes = {
-
+  	// Controls only when waveform is focused
+  	var waveformFocusControls = {
+      
       // left
       37:()=>{ 
-
         if( this.nudging ){
           this.nudgeActiveRegion('left')
         }else{
           this.wavesurfer.skip(this.skipLength*-1)  
-        }
-
-        
+        }        
       },
 
       // right
@@ -196,6 +218,20 @@ function CodeKeyframes(args){
         e.preventDefault()
       },
 
+      // delete
+      46:()=>{
+        this.activeRegion.remove()
+        this.saveRegions()
+        this.updateSequence()
+      },
+      
+      // delete (backspace)
+      8:()=>{
+        this.activeRegion.remove()
+        this.saveRegions()
+        this.updateSequence()
+      },
+
       // enter
       13:()=>{
         
@@ -209,63 +245,65 @@ function CodeKeyframes(args){
           }
         })
 
-        this.editCode(region)
+        this.activateRegion(region)
         this.saveRegions()
         this.updateSequence()
       },
 
+  	}
+
+
+  	// controls when editor is open
+    var editorOpenControls = {
+
+      // page up
+      33:()=>{
+        this.activateRegion( this.getNextRegion() )
+      },
+
+      // page down
+      34:()=>{
+        this.activateRegion( this.getPrevRegion() )
+      },
+
+      // left bracket
+      219:()=>{
+        this.activateRegion( this.getPrevRegion() )
+      },
+
+      // right bracket
+      221:()=>{
+        this.activateRegion( this.getNextRegion() )
+      },
+    }
+  	
+  	// controls that trigger even if editor is closed
+  	var globalControls ={
+      
       // space
       32:()=>{
         this.wavesurfer.playPause()
         this._code.classList.remove('error')
       },
-
-      // page up
-      33:()=>{
-        this.editCode( this.getNextRegion() )
-      },
-
-      // page down
-      34:()=>{
-        this.editCode( this.getPrevRegion() )
-      },
-
-      // left bracket
-      219:()=>{
-        this.editCode( this.getPrevRegion() )
-      },
-
-      // right bracket
-      221:()=>{
-        this.editCode( this.getNextRegion() )
-      },
-
-      // delete
-      46:()=>{
-        this.activeRegion.remove()
-        this.saveRegions()
-        this.updateSequence()
-      },
-
-      // delete (backspace)
-      8:()=>{
-        this.activeRegion.remove()
-        this.saveRegions()
-        this.updateSequence()
-      },
-
-      // E (open editor)
+      
+      // E (toggle editor)
       69:()=>{
         this.toggleEditor()
       },
+  	}
 
-    }
+  	// do global controls
+  	if( globalControls[e.which] ) globalControls[e.which]()
 
-    // prevent all key actions except space bar when editor closed
-  	if(!this.editorOpen && e.which !== 32 && e.which !== 69 ) return
+  	// do controls when editor is open
+  	if( this.editorOpen && editorOpenControls[e.which] ) editorOpenControls[e.which]()
 
-    if( keycodes[e.which] ){
-      keycodes[e.which]()
+  	// get focused element for area-specific controls
+    var activeElement = document.activeElement
+
+    // do waveform controls only if waveform is focused
+    if( activeElement.classList.contains('ckf-waveform') && waveformFocusControls[e.which] ){
+			waveformFocusControls[e.which]()
     }
 
   })
@@ -312,8 +350,8 @@ function CodeKeyframes(args){
 
         var region = this.wavesurfer.regions.list[id]
         return {
-          start: region.start,
-          end:   region.end,
+          start: region.start.toFixed(2),
+          end:   region.end.toFixed(2),
           data:  region.data
         }
       })
@@ -352,7 +390,7 @@ function CodeKeyframes(args){
         start:  region.start,
         end:    region.end,
         data:   region.data,
-        drag:   false,
+        drag:   true,
         resize: false
       })
     })
@@ -363,11 +401,15 @@ function CodeKeyframes(args){
     this.sequence = []
 
     var regions = this.wavesurfer.regions.list
-    for( var key in regions ){    
+    for( var key in regions ){
       // convert regions to commands and add to sequence
+
+      console.log(regions[key].data.state)
+
       var command = {
         time: regions[key].start,
-        code: regions[key].data.code
+        code: regions[key].data.code,
+        state: regions[key].data.state
       }
       this.sequence.push(command)
     }
@@ -415,10 +457,10 @@ function CodeKeyframes(args){
 
   }
 
-  this.editCode = function(region, seek = true) {
+  this.activateRegion = function(region, seek = true) {
 
     if(!region) return
-
+    
     // turn off copy keyframes message in editor
     this._codeEditor.classList.remove('exported')
 
@@ -428,7 +470,7 @@ function CodeKeyframes(args){
     if( !this.editorOpen ) return
 
     // remove active class from all regions
-    _regions = this._editor.querySelectorAll('region')
+    _regions = this._panel.querySelectorAll('region')
     for (var i = _regions.length - 1; i >= 0; i--) {
       _regions[i].classList.remove('active')
     }
@@ -437,11 +479,14 @@ function CodeKeyframes(args){
 
     // seek to region start
     if( seek ){
-      this.wavesurfer.seekAndCenter( (region.start / this.wavesurfer.getDuration()))  
+      this.wavesurfer.seekAndCenter( (region.start / this.wavesurfer.getDuration()))
     }
 
     // show the code for this region
     this._code.value = region.data.code
+
+    // update the state panel display
+	  this.updateStatePanel(region.data.state)
 
     // set active region
     this.activeRegion = region
@@ -449,6 +494,7 @@ function CodeKeyframes(args){
   }
 
   this.runRegionCode = function(region){
+
     this._code.classList.remove('error')
       
     try{
@@ -457,6 +503,15 @@ function CodeKeyframes(args){
       this._code.classList.add('error')
       console.log(error)
     }
+
+    // sync the internal state to this region
+    if( region.data.state ){
+	    for (var stateKey in region.data.state) {
+			  this.state[stateKey] = region.data.state[stateKey]
+			}    	
+    }
+
+    this.onFrame()
   }
 
   this.getNextRegion = function(){
@@ -511,10 +566,34 @@ function CodeKeyframes(args){
   }
 
   this.toggleEditor = () => {
-
-  	this._editor.classList.toggle('closed')
+  	this._panel.classList.toggle('closed')
     this.editorOpen = !this.editorOpen
+  }
 
+  this.updateStatePanel = (regionState) => {
+
+  	// default to initial state 
+  	// if(!regionState){
+  	// 	console.log('No region state passsed to render. Defaulting to initial/current state.')
+  		regionState = this.state
+  	// }
+
+  	// remove previous items
+  	var _stateItems = document.querySelectorAll('.state-item')
+  	for (var i = _stateItems.length - 1; i >= 0; i--) {
+  		_stateItems[i].remove()
+  	}
+
+  	for (var property in regionState) {
+
+  		this._stateEditor.insertAdjacentHTML('beforeend',`
+		    <div class="state-item">
+		      <span>${property}</span>
+		      <input type="number" key="${property}" step="0.1" value="${regionState[property]}" />
+		      <input type="checkbox" />
+		    </div>`)
+
+		}
   }
 
   /*
@@ -537,7 +616,7 @@ function CodeKeyframes(args){
   var progressColor = args.progressColor || '#0c9fa7'
 
   this.wavesurfer = WaveSurfer.create({
-      container:     '#ckf-waveform',
+      container:     '.ckf-waveform',
       height:        waveHeight,
       scrollParent:  true,
       normalize:     true,
@@ -561,6 +640,8 @@ function CodeKeyframes(args){
   })
 
   this.wavesurfer.on('ready', (e) =>{
+ 
+ 		// reset zoom level
     this.wavesurfer.zoom(this.zoom)
 
     // load regions from localstorage and keyframes
@@ -568,6 +649,12 @@ function CodeKeyframes(args){
 
     // build the sequence
     this.updateSequence()
+
+    // populate the state panel
+    this.updateStatePanel()
+
+    // run initial onFrame function once
+    this.onFrame()
 
     // autoplay
     if(this.autoplay){
@@ -578,7 +665,7 @@ function CodeKeyframes(args){
   })
 
   this.wavesurfer.on('region-click', (region) => {
-    this.editCode(region)
+  	this.activateRegion(region)
     this.updateSequence()
   })
 
@@ -600,7 +687,7 @@ function CodeKeyframes(args){
       var regions = this.wavesurfer.regions.list
       for( var key in regions){
         if( regions[key].start == command.time ){
-          this.editCode(regions[key], false)
+          this.activateRegion(regions[key], false)
           break
         }
       }
