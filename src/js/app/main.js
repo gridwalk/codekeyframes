@@ -88,8 +88,6 @@ function CodeKeyframes(args){
   // save regions on keyup
   this._code.onkeyup = (e) => {
 
-  	console.log('code keyup')
-  	
   	if( !this.activeRegion ){
   		console.warn('No keyframe selected')
   		return
@@ -381,9 +379,8 @@ function CodeKeyframes(args){
 
     var regions = this.wavesurfer.regions.list
     for( var key in regions ){
+      
       // convert regions to commands and add to sequence
-
-      console.log(regions[key].data.state)
 
       var command = {
         time: regions[key].start,
@@ -654,9 +651,10 @@ function CodeKeyframes(args){
 
   this.wavesurfer.on('audioprocess', () => {
 
-  	this.onFrame()
-
     var time    = this.wavesurfer.getCurrentTime()
+
+  	this.onFrame(time)
+
     var command = this.sequence[this.sequenceCursor]
     if( !command ) return
     if( time > command.time ){

@@ -1,24 +1,55 @@
 <html>
 
 <head>
-  <title>Code Keyframes Example</title>
+  <title>TAKASHI & KIYOKO by EMINA</title>
   <link rel="stylesheet" href="codeKeyframes.css">
 
   <style>
 
-    /* these styles are just for the example */
     body{
     	background-color: #000;
     	overflow: hidden;
     	color:#fff;
     	font-family: monospace;
+    	margin: 0;
+    	padding: 0;
+    }
+    #content {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+    }
+    #compare{
+    	/*width: 100vw;*/
+    	/*height: 100vh;*/
     }
 
-    .example{
-			position: fixed;
-			top: 20px;
-			left: 20px;
-			z-index: 2;
+    canvas:not(.control){
+    	position: absolute;
+    	z-index: 1;
+    }
+
+    label {
+    	position: relative;
+    	color : #7a7a7a;
+      font-size : 11px;
+      display: flex;
+      
+    }
+
+    .face-controls{
+    	position: fixed;
+    	top: 0;
+    	left: 0;
+    	height: 100%;
+    	display: flex;
+    	flex-direction: column;
+    	z-index: 2;
+    	display: none;
+    	
+    	
     }
     
   </style>
@@ -26,12 +57,271 @@
 
 <body>
 
-	<div class="example">Press space to toggle playback</div>
-  
-  <!-- Three JS used for example. Remove this line if your project doesn't use Three JS -->
-	<script src='https://cdn.jsdelivr.net/gh/mrdoob/three.js@r109/build/three.min.js'></script>
+	<!-- helpers -->
+	<script>
+		
+		function rRange(min, max) {
+		  return Math.random() * (max - min) + min;
+		}
 
-	<!-- Set up the Three JS scene, again just for this example -->
+		function r(max) {
+			return Math.random() * max
+		}
+
+	</script>
+
+	<!-- CLM -->
+
+	<div id="content">
+    <canvas id="compare"></canvas>
+    <br>
+	</div>
+  
+  <div class="face-controls">
+    <label>0 <input type="range" name="param1" min="0" max="10" step='0.1' oninput="rangeInput(this.value, 0)"></label>
+    <!-- <label>1 <input type="range" name="param2" min="-60" max="60" oninput="rangeInput(this.value, 1)"></label> -->
+    <!-- <label>2 <input type="range" name="param3" min="-60" max="60" oninput="rangeInput(this.value, 2)"></label> -->
+    <!-- <label>3 <input type="range" name="param1" min="-60" max="60" oninput="rangeInput(this.value, 3)"></label> -->
+    <label>4 <input type="range" name="param2" min="-60" max="60" oninput="rangeInput(this.value, 4)"></label>
+    <label>5 <input type="range" name="param3" min="-60" max="60" oninput="rangeInput(this.value, 5)"></label>
+    <label>6 <input type="range" name="param1" min="-60" max="60" oninput="rangeInput(this.value, 6)"></label>
+    <label>7 <input type="range" name="param2" min="-60" max="60" oninput="rangeInput(this.value, 7)"></label>
+    <label>8 <input type="range" name="param3" min="-60" max="60" oninput="rangeInput(this.value, 8)"></label>
+    <label>9 <input type="range" name="param3" min="-60" max="60" oninput="rangeInput(this.value, 9)"></label>
+    <label>10<input type="range" name="param1" min="-60" max="60" oninput="rangeInput(this.value, 10)"></label>
+    <label>11<input type="range" name="param2" min="-60" max="60" oninput="rangeInput(this.value, 11)"></label>
+    <label>12<input type="range" name="param3" min="-60" max="60" oninput="rangeInput(this.value, 12)"></label>
+    <label>13<input type="range" name="param1" min="-60" max="60" oninput="rangeInput(this.value, 13)"></label>
+    <label>14<input type="range" name="param2" min="-60" max="60" oninput="rangeInput(this.value, 14)"></label>
+    <label>15<input type="range" name="param3" min="-60" max="60" oninput="rangeInput(this.value, 15)"></label>
+    <label>16<input type="range" name="param1" min="-60" max="60" oninput="rangeInput(this.value, 16)"></label>
+    <label>17<input type="range" name="param2" min="-60" max="60" oninput="rangeInput(this.value, 17)"></label>
+    <label>18<input type="range" name="param3" min="-60" max="60" oninput="rangeInput(this.value, 18)"></label>
+    <label>19<input type="range" name="param3" min="-60" max="60" oninput="rangeInput(this.value, 19)"></label>    	
+    <label>20<input type="range" name="param3" min="-60" max="60" oninput="rangeInput(this.value, 20)"></label>    	
+    <label>21<input type="range" name="param3" min="-60" max="60" oninput="rangeInput(this.value, 21)"></label>    	
+    <label>22<input type="range" name="param3" min="-60" max="60" oninput="rangeInput(this.value, 22)"></label>    	
+    <label>23<input type="range" name="param3" min="-60" max="60" oninput="rangeInput(this.value, 23)"></label>    	
+  </div>
+
+	<script src='clm-model.js'></script>
+	<script>
+		
+		var faceScale = window.innerWidth * 0.003
+		var paramsRange = [faceScale, 0, 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0];
+		fixFaceScale()
+
+		var clearFaceCanvas = true
+
+		function rangeInput(val, num) {
+		  paramsRange[num] = val;
+
+		  fixFaceScale()
+
+		  if(clearFaceCanvas) cc.clearRect(0,0,window.innerWidth,window.innerHeight)
+		  draw(document.getElementById('compare'), paramsRange);     
+		}
+
+
+		var canvasInput = document.getElementById('compare');
+
+		canvasInput.setAttribute('width',window.innerWidth)
+		canvasInput.setAttribute('height',window.innerHeight)
+
+		var cc = canvasInput.getContext('2d');
+		cc.fillStyle = "rgb(200,0,0)";
+
+		var paramslength = paramsRange.length;
+		var num_points = pModel.shapeModel.numPtsPerSample;
+
+		var x,y;
+
+		var xOffset = 0
+		var yOffset = 0
+
+		var i, path;
+
+		function drawPath(canvasContext, path, dp) {
+			canvasContext.beginPath();
+			var i, x, y;
+			for (var p = 0;p < path.length;p++) {
+				i = path[p]*2;
+				x = pModel.shapeModel.meanShape[i/2][0];
+				y = pModel.shapeModel.meanShape[i/2][1];
+				for (var j = 0;j < pModel.shapeModel.numEvalues;j++) {
+					x += pModel.shapeModel.eigenVectors[i][j]*dp[j+4];
+					y += pModel.shapeModel.eigenVectors[i+1][j]*dp[j+4];
+				}
+				a = dp[0]*x - dp[1]*y + dp[2];
+				b = dp[0]*y + dp[1]*x + dp[3];
+				x += a;
+				y += b;
+
+				x = x+xOffset
+				y = y+yOffset
+
+				if (i == 0) {
+					canvasContext.moveTo(x,y);
+				} else {
+					canvasContext.lineTo(x,y);
+				}
+			}
+			canvasContext.moveTo(0,0);
+			canvasContext.closePath();
+			canvasContext.stroke();
+		}
+
+		function drawPoint(canvasContext, point, dp) {
+		  var i, x, y;
+		  i = point*2;
+			x = pModel.shapeModel.meanShape[i/2][0];
+		  y = pModel.shapeModel.meanShape[i/2][1];
+			for (var j = 0;j < pModel.shapeModel.numEvalues;j++) {
+				x += pModel.shapeModel.eigenVectors[i][j]*dp[j+4];
+				y += pModel.shapeModel.eigenVectors[i+1][j]*dp[j+4];
+			}
+			a = dp[0]*x - dp[1]*y + dp[2];
+			b = dp[0]*y + dp[1]*x + dp[3];
+			x += a;
+			y += b;
+
+			x = x+xOffset
+			y = y+yOffset
+
+
+			canvasContext.beginPath();
+		  canvasContext.arc(x, y, 2, 0, Math.PI*2, true);
+			canvasContext.closePath();
+			canvasContext.fill();
+		}
+
+
+		var draw = function(canvas, pv) {
+
+		  // if no previous points, just draw in the middle of canvas
+		  var params;
+		  if (pv === undefined) {
+		    params = currentParameters.slice(0);
+		  } else {
+		    params = pv.slice(0);
+		  }
+
+		  var cc = canvas.getContext('2d');
+		  cc.fillStyle = "rgb(255,255,255)";
+		  cc.strokeStyle = "rgb(255,255,255)";
+		  cc.save();
+
+		  var paths = pModel.path.normal;
+		  for (var i = 0;i < paths.length;i++) {
+		    if (typeof(paths[i]) == 'number') {
+		      drawPoint(cc, paths[i], params);
+		    } else {
+		      drawPath(cc, paths[i], params);
+		    }
+		  }
+
+		  cc.restore()
+		}
+			  
+		// draw( document.getElementById('compare'), paramsRange )
+
+		function fixFaceScale() {
+			var faceScale = paramsRange[0]
+			
+			var faceX = (window.innerWidth / 2) - ((faceScale*115)/2)  
+			paramsRange[2] = faceX
+
+			var faceY = (window.innerHeight / 2) - ((faceScale*115)/2)  
+			paramsRange[3] = faceY
+
+		}
+
+		function vocalize() {
+			paramsRange[6] = -5
+			var voxLoop = setInterval(function(){
+				paramsRange[6]++
+				if( paramsRange[6] >= 10 ) clearInterval(voxLoop)
+			},25)
+		}
+
+		var flop = 0
+		function randomizeFacePosition(){
+
+			// xOffset = ( r(window.innerWidth) - window.innerWidth/2 )
+			// while( xOffset < 150 && xOffset > -150 ) xOffset = ( r(window.innerWidth) - window.innerWidth/2 )
+			// console.log(xOffset) 
+
+
+			var facePan
+			if( flop ){
+				xOffset = rRange( window.innerWidth*-.4, -250 )
+				facePan = rRange(30,60)
+				flop = 0
+			}else{
+				xOffset = rRange( 250, window.innerWidth*.4 )			
+				facePan = rRange(-60,-30)
+				flop = 1
+			}
+
+			paramsRange[4] = facePan
+
+			yOffset = rRange( (window.innerHeight*-0.4), (window.innerHeight*0.4) )
+		}
+
+		var opaLoop
+		function fadeFaceOut() {
+			clearInterval(opaLoop)
+			var o = 1
+			window.opaLoop = setInterval(function(){
+				window.compare.style.opacity = o
+				o -= 0.025
+				if( o <= 0 ) clearInterval(opaLoop)
+			},25)
+		}
+
+		function randomizeFaceScale() {
+
+			paramsRange[0] = rRange( window.innerWidth * 0.002, window.innerWidth * 0.004)
+			fixFaceScale()
+
+		}
+
+		function blinkFace() {
+			
+			vocalize()
+			randomizeFacePosition()
+			randomizeFaceScale()
+			// fadeFaceOut()
+
+		}
+
+		var morphs = []
+
+		function randomFaceMorph() {
+			var paramKey = Math.floor(rRange(6,23))
+			morphs[paramKey] = r(0.1)-0.05
+			console.log(morphs)
+		}
+
+		function doMorphs(argument) {
+			for (var paramKey in morphs) {
+				var increment = morphs[paramKey]
+				paramsRange[paramKey] += increment
+				if( paramsRange[paramKey] > 160 || paramsRange[paramKey] < -160 ) morphs[paramKey] = 0
+			}
+		}
+
+		function doMorphs2(){
+			var paramKey = Math.floor(rRange(6,23))
+			paramsRange[paramKey] += r(5)-2.5
+		}
+					
+	</script>
+
+	
+  <script src='https://cdn.jsdelivr.net/gh/mrdoob/three.js@r109/build/three.min.js'></script>
+
+	<!-- Set up the Three JS scene -->
 	<script>
 		var winW = window.innerWidth
 		var winH = window.innerHeight
@@ -40,7 +330,8 @@
 		var camera = new THREE.PerspectiveCamera(50, winW / winH, 0.01, 20)
 
 		var renderer = new THREE.WebGLRenderer({
-		  antialias: false
+		  antialias: false,
+		  alpha:true
 		})
 		renderer.setSize(winW, winH)
 		document.body.appendChild(renderer.domElement)
@@ -82,40 +373,48 @@
   <script>
     var ckf = new CodeKeyframes({
       
-      audioPath:     './audio/KIYOKO.mp3',
+      audioPath:     './audio/takashi-and-kiyoko.mp3',
       editorOpen:    true,
       waveColor:     '#3AEAD2',
       progressColor: '#0c9fa7',
       bgColor:       '#222',
-      label:         'KIYOKO by EMINA | Visual: d0n.xyz',
+      label:         'TAKASHI & KIYOKO by EMINA | Visual: d0n.xyz',
       autoplay:      false,
       
-      // each value in state generates a variable you can easily change in the editor
-      // variables can be accessed elsewhere in your code like ckf.state.varName
       state: {
       	pyramidGroupScale: 1,
-      	pyramidXOffset:    0
+      	pyramidXOffset:    0,
       },
 
-      // no need to edit keyframes by hand. When you click "Export Keyframes" in the editor,
-      // you will paste the result into this variable
-      keyframes: [{"start":"2.73","end":"2.83","data":{"code":"pyramid.rotation.z = Math.random()*360\npyramid2.rotation.z = Math.random()*360","state":{"pyramidGroupScale":"0.5","pyramidXOffset":"3"}}},{"start":"5.40","end":"5.50","data":{"code":"pyramid.rotation.z = Math.random()*360\npyramid2.rotation.z = Math.random()*360","state":{"pyramidGroupScale":"0.8","pyramidXOffset":"-0.6"}}},{"start":"8.10","end":"8.20","data":{"code":"pyramid.rotation.z = Math.random()*360\npyramid2.rotation.z = Math.random()*360","state":{"pyramidGroupScale":"1","pyramidXOffset":"0.5"}}},{"start":"10.76","end":"10.86","data":{"code":"pyramid.rotation.z = Math.random()*360\npyramid2.rotation.z = Math.random()*360","state":{"pyramidGroupScale":".4","pyramidXOffset":"5.5"}}},{"start":"13.45","end":"13.55","data":{"code":"pyramid.rotation.z = Math.random()*360\npyramid2.rotation.z = Math.random()*360","state":{"pyramidGroupScale":"0.6","pyramidXOffset":"1.6"}}},{"start":"16.09","end":"16.19","data":{"code":"pyramid.rotation.z = Math.random()*360\npyramid2.rotation.z = Math.random()*360","state":{"pyramidGroupScale":"0.8","pyramidXOffset":"0"}}},{"start":"18.78","end":"18.88","data":{"code":"pyramid.rotation.z = Math.random()*360\npyramid2.rotation.z = Math.random()*360","state":{"pyramidGroupScale":"0.9","pyramidXOffset":"0.4"}}}],
+      keyframes: [{"start":"2.77","end":"2.87","data":{"code":"blinkFace()"}},{"start":"0.20","end":"0.30","data":{"code":"blinkFace()"}},{"start":"4.57","end":"4.67","data":{"code":"blinkFace()"}},{"start":"5.53","end":"5.63","data":{"code":"blinkFace()"}},{"start":"6.27","end":"6.37","data":{"code":"blinkFace()"}},{"start":"7.30","end":"7.40","data":{"code":"blinkFace()"}},{"start":"8.27","end":"8.37","data":{"code":"blinkFace()"}},{"start":"8.88","end":"8.98","data":{"code":"blinkFace()\n\ncc.clearRect(0,0,window.innerWidth,window.innerHeight)"}},{"start":"9.92","end":"10.02","data":{"code":"blinkFace()"}},{"start":"10.93","end":"11.03","data":{"code":"blinkFace()"}},{"start":"11.55","end":"11.65","data":{"code":"blinkFace()\n\ncc.clearRect(0,0,window.innerWidth,window.innerHeight)"}},{"start":"12.54","end":"12.64","data":{"code":"blinkFace()"}},{"start":"16.27","end":"16.37","data":{"code":"blinkFace()"}},{"start":"16.95","end":"17.05","data":{"code":"blinkFace()\n\ncc.clearRect(0,0,window.innerWidth,window.innerHeight) "}},{"start":"17.96","end":"18.06","data":{"code":"blinkFace()"}},{"start":"18.85","end":"18.95","data":{"code":"blinkFace()"}},{"start":"19.55","end":"19.65","data":{"code":"blinkFace()\n\ncc.clearRect(0,0,window.innerWidth,window.innerHeight)"}},{"start":"21.28","end":"21.38","data":{"code":"blinkFace()"}},{"start":"21.65","end":"21.75","data":{"code":"blinkFace()"}},{"start":"22.01","end":"22.11","data":{"code":"blinkFace()"}},{"start":"22.34","end":"22.44","data":{"code":"blinkFace()"}},{"start":"22.98","end":"23.08","data":{"code":"blinkFace()"}},{"start":"23.31","end":"23.41","data":{"code":"blinkFace()"}},{"start":"23.92","end":"24.02","data":{"code":"blinkFace()"}},{"start":"24.32","end":"24.42","data":{"code":"blinkFace()\n"}},{"start":"24.69","end":"24.79","data":{"code":"blinkFace()"}},{"start":"25.10","end":"25.20","data":{"code":"blinkFace()"}},{"start":"25.42","end":"25.52","data":{"code":"blinkFace()"}},{"start":"25.79","end":"25.89","data":{"code":"blinkFace()"}},{"start":"26.11","end":"26.21","data":{"code":"blinkFace()"}},{"start":"26.43","end":"26.53","data":{"code":"blinkFace()"}},{"start":"26.76","end":"26.86","data":{"code":"blinkFace()"}},{"start":"27.12","end":"27.22","data":{"code":"blinkFace()"}},{"start":"27.45","end":"27.55","data":{"code":"blinkFace()"}},{"start":"27.73","end":"27.83","data":{"code":"blinkFace()\n"}},{"start":"28.06","end":"28.16","data":{"code":"blinkFace()"}},{"start":"28.38","end":"28.48","data":{"code":"blinkFace()"}},{"start":"28.69","end":"28.79","data":{"code":"blinkFace()"}},{"start":"28.97","end":"29.07","data":{"code":"blinkFace()"}},{"start":"29.30","end":"29.40","data":{"code":"blinkFace()"}},{"start":"29.62","end":"29.72","data":{"code":"blinkFace()"}},{"start":"30.02","end":"30.12","data":{"code":"blinkFace()"}},{"start":"30.35","end":"30.45","data":{"code":"blinkFace()"}},{"start":"30.67","end":"30.77","data":{"code":"blinkFace()"}},{"start":"31.04","end":"31.14","data":{"code":"blinkFace()\n"}},{"start":"31.32","end":"31.42","data":{"code":"blinkFace()"}},{"start":"31.68","end":"31.78","data":{"code":"blinkFace()"}},{"start":"32.01","end":"32.11","data":{"code":"blinkFace()"}},{"start":"32.37","end":"32.47","data":{"code":"blinkFace()"}},{"start":"32.69","end":"32.79","data":{"code":"blinkFace()"}},{"start":"33.06","end":"33.16","data":{"code":"blinkFace()"}},{"start":"33.38","end":"33.48","data":{"code":"blinkFace()"}},{"start":"33.71","end":"33.81","data":{"code":"blinkFace()"}},{"start":"34.03","end":"34.13","data":{"code":"blinkFace()"}},{"start":"34.35","end":"34.45","data":{"code":"blinkFace()\n"}},{"start":"34.67","end":"34.77","data":{"code":"blinkFace()"}},{"start":"35.04","end":"35.14","data":{"code":"blinkFace()"}},{"start":"35.36","end":"35.46","data":{"code":"blinkFace()"}},{"start":"35.69","end":"35.79","data":{"code":"blinkFace()"}},{"start":"36.01","end":"36.11","data":{"code":"blinkFace()"}},{"start":"36.38","end":"36.48","data":{"code":"blinkFace()"}},{"start":"36.66","end":"36.76","data":{"code":"blinkFace()"}},{"start":"36.99","end":"37.09","data":{"code":"blinkFace()"}},{"start":"37.35","end":"37.45","data":{"code":"blinkFace()"}},{"start":"37.67","end":"37.77","data":{"code":"blinkFace()\n"}},{"start":"38.00","end":"38.10","data":{"code":"blinkFace()"}},{"start":"38.37","end":"38.47","data":{"code":"blinkFace()"}},{"start":"38.73","end":"38.83","data":{"code":"blinkFace()"}},{"start":"39.02","end":"39.12","data":{"code":"blinkFace()"}},{"start":"39.34","end":"39.44","data":{"code":"blinkFace()"}},{"start":"39.66","end":"39.76","data":{"code":"blinkFace()"}},{"start":"39.98","end":"40.08","data":{"code":"blinkFace()"}},{"start":"40.34","end":"40.44","data":{"code":"blinkFace()"}},{"start":"40.66","end":"40.76","data":{"code":"blinkFace()"}},{"start":"41.02","end":"41.12","data":{"code":"blinkFace()\n","state":{"clearFaceCanvas":"0"}}},{"start":"41.31","end":"41.41","data":{"code":"blinkFace()"}},{"start":"41.67","end":"41.77","data":{"code":"blinkFace()"}},{"start":"41.96","end":"42.06","data":{"code":"blinkFace()"}},{"start":"42.32","end":"42.42","data":{"code":"blinkFace()"}},{"start":"42.60","end":"42.70","data":{"code":"blinkFace()"}},{"start":"43.00","end":"43.10","data":{"code":"blinkFace()"}},{"start":"43.33","end":"43.43","data":{"code":"blinkFace()"}},{"start":"43.69","end":"43.79","data":{"code":"blinkFace()"}},{"start":"44.01","end":"44.11","data":{"code":"blinkFace()"}},{"start":"44.38","end":"44.48","data":{"code":"blinkFace()"}},{"start":"44.70","end":"44.80","data":{"code":"blinkFace()"}},{"start":"45.07","end":"45.17","data":{"code":"blinkFace()"}},{"start":"45.40","end":"45.50","data":{"code":"blinkFace()"}},{"start":"45.72","end":"45.82","data":{"code":"blinkFace()"}},{"start":"46.08","end":"46.18","data":{"code":"blinkFace()"}},{"start":"46.41","end":"46.51","data":{"code":"blinkFace()"}},{"start":"46.73","end":"46.83","data":{"code":"blinkFace()"}},{"start":"47.06","end":"47.16","data":{"code":"blinkFace()"}},{"start":"47.38","end":"47.48","data":{"code":"blinkFace()"}},{"start":"47.71","end":"47.81","data":{"code":"blinkFace()"}},{"start":"48.02","end":"48.12","data":{"code":"blinkFace()"}},{"start":"48.34","end":"48.44","data":{"code":"blinkFace()"}},{"start":"48.66","end":"48.76","data":{"code":"blinkFace()"}},{"start":"49.03","end":"49.13","data":{"code":"blinkFace()"}},{"start":"49.35","end":"49.45","data":{"code":"blinkFace()"}},{"start":"49.71","end":"49.81","data":{"code":"blinkFace()"}},{"start":"50.08","end":"50.18","data":{"code":"blinkFace()"}},{"start":"50.36","end":"50.46","data":{"code":"blinkFace()"}},{"start":"50.72","end":"50.82","data":{"code":"blinkFace()"}},{"start":"51.04","end":"51.14","data":{"code":"blinkFace()"}},{"start":"51.36","end":"51.46","data":{"code":"blinkFace()"}},{"start":"51.72","end":"51.82","data":{"code":"blinkFace()"}},{"start":"52.04","end":"52.14","data":{"code":"blinkFace()"}},{"start":"52.37","end":"52.47","data":{"code":"blinkFace()"}},{"start":"52.69","end":"52.79","data":{"code":"blinkFace()"}},{"start":"53.02","end":"53.12","data":{"code":"blinkFace()"}},{"start":"53.34","end":"53.44","data":{"code":"blinkFace()"}},{"start":"53.70","end":"53.80","data":{"code":"blinkFace()"}},{"start":"54.02","end":"54.12","data":{"code":"blinkFace()"}},{"start":"54.38","end":"54.48","data":{"code":"blinkFace()"}},{"start":"54.71","end":"54.81","data":{"code":"blinkFace()"}},{"start":"55.03","end":"55.13","data":{"code":"blinkFace()"}},{"start":"55.39","end":"55.49","data":{"code":"blinkFace()"}},{"start":"55.72","end":"55.82","data":{"code":"blinkFace()"}},{"start":"56.04","end":"56.14","data":{"code":"blinkFace()"}},{"start":"56.40","end":"56.50","data":{"code":"blinkFace()"}},{"start":"56.67","end":"56.77","data":{"code":"blinkFace()"}},{"start":"57.03","end":"57.13","data":{"code":"blinkFace()"}},{"start":"57.36","end":"57.46","data":{"code":"blinkFace()"}},{"start":"57.68","end":"57.78","data":{"code":"blinkFace()"}},{"start":"58.01","end":"58.11","data":{"code":"blinkFace()"}},{"start":"58.37","end":"58.47","data":{"code":"blinkFace()"}},{"start":"58.69","end":"58.79","data":{"code":"blinkFace()"}},{"start":"59.01","end":"59.11","data":{"code":"blinkFace()"}},{"start":"59.37","end":"59.47","data":{"code":"blinkFace()"}},{"start":"59.73","end":"59.83","data":{"code":"blinkFace()"}},{"start":"60.05","end":"60.15","data":{"code":"blinkFace()"}},{"start":"60.38","end":"60.48","data":{"code":"blinkFace()"}},{"start":"60.70","end":"60.80","data":{"code":"blinkFace()"}},{"start":"61.07","end":"61.17","data":{"code":"blinkFace()"}},{"start":"61.39","end":"61.49","data":{"code":"blinkFace()"}},{"start":"61.67","end":"61.77","data":{"code":"blinkFace()"}},{"start":"62.03","end":"62.13","data":{"code":"blinkFace()"}},{"start":"62.39","end":"62.49","data":{"code":"blinkFace()"}},{"start":"62.67","end":"62.77","data":{"code":"blinkFace()"}},{"start":"63.04","end":"63.14","data":{"code":"blinkFace()"}},{"start":"63.36","end":"63.46","data":{"code":"blinkFace()"}},{"start":"63.73","end":"63.83","data":{"code":"blinkFace()"}},{"start":"64.05","end":"64.15","data":{"code":"blinkFace()"}},{"start":"64.37","end":"64.47","data":{"code":"blinkFace()"}},{"start":"64.69","end":"64.79","data":{"code":"blinkFace()"}},{"start":"65.01","end":"65.11","data":{"code":"blinkFace()"}},{"start":"65.34","end":"65.44","data":{"code":"blinkFace()"}},{"start":"65.70","end":"65.80","data":{"code":"blinkFace()"}},{"start":"66.03","end":"66.13","data":{"code":"blinkFace()"}},{"start":"66.39","end":"66.49","data":{"code":"blinkFace()"}},{"start":"66.71","end":"66.81","data":{"code":"blinkFace()"}},{"start":"66.99","end":"67.09","data":{"code":"blinkFace()"}},{"start":"67.36","end":"67.46","data":{"code":"blinkFace()"}},{"start":"67.72","end":"67.82","data":{"code":"blinkFace()"}},{"start":"68.37","end":"68.47","data":{"code":"blinkFace()"}},{"start":"68.74","end":"68.84","data":{"code":"blinkFace()"}},{"start":"69.14","end":"69.24","data":{"code":"blinkFace()"}},{"start":"69.42","end":"69.52","data":{"code":"blinkFace()"}},{"start":"69.98","end":"70.08","data":{"code":"blinkFace()"}},{"start":"70.35","end":"70.45","data":{"code":"blinkFace()"}},{"start":"70.71","end":"70.81","data":{"code":"blinkFace()"}},{"start":"71.04","end":"71.14","data":{"code":"blinkFace()"}},{"start":"71.73","end":"71.83","data":{"code":"blinkFace()"}},{"start":"72.01","end":"72.11","data":{"code":"blinkFace()"}},{"start":"72.66","end":"72.76","data":{"code":"blinkFace()"}},{"start":"73.02","end":"73.12","data":{"code":"blinkFace()"}},{"start":"73.39","end":"73.49","data":{"code":"blinkFace()"}},{"start":"73.71","end":"73.81","data":{"code":"blinkFace()"}},{"start":"74.04","end":"74.14","data":{"code":"blinkFace()"}},{"start":"74.40","end":"74.50","data":{"code":"blinkFace()"}},{"start":"74.68","end":"74.78","data":{"code":"blinkFace()"}},{"start":"75.40","end":"75.50","data":{"code":"blinkFace()"}},{"start":"75.72","end":"75.82","data":{"code":"blinkFace()"}},{"start":"76.05","end":"76.15","data":{"code":"blinkFace()"}},{"start":"76.37","end":"76.47","data":{"code":"blinkFace()"}},{"start":"76.78","end":"76.88","data":{"code":"blinkFace()"}},{"start":"77.02","end":"77.12","data":{"code":"blinkFace()"}},{"start":"77.38","end":"77.48","data":{"code":"blinkFace()"}},{"start":"78.06","end":"78.16","data":{"code":"blinkFace()"}},{"start":"78.35","end":"78.45","data":{"code":"blinkFace()"}},{"start":"78.71","end":"78.81","data":{"code":"blinkFace()"}},{"start":"79.04","end":"79.14","data":{"code":"blinkFace()"}},{"start":"79.40","end":"79.50","data":{"code":"blinkFace()"}},{"start":"79.68","end":"79.78","data":{"code":"blinkFace()"}},{"start":"80.04","end":"80.14","data":{"code":"blinkFace()"}},{"start":"80.77","end":"80.87","data":{"code":"blinkFace()"}},{"start":"81.09","end":"81.19","data":{"code":"blinkFace()"}},{"start":"81.46","end":"81.56","data":{"code":"blinkFace()"}},{"start":"81.74","end":"81.84","data":{"code":"blinkFace()"}},{"start":"82.06","end":"82.16","data":{"code":"blinkFace()"}},{"start":"82.38","end":"82.48","data":{"code":"blinkFace()"}},{"start":"82.71","end":"82.81","data":{"code":"blinkFace()"}},{"start":"83.35","end":"83.45","data":{"code":"blinkFace()"}},{"start":"83.71","end":"83.81","data":{"code":"blinkFace()"}},{"start":"84.08","end":"84.18","data":{"code":"blinkFace()"}},{"start":"84.44","end":"84.54","data":{"code":"blinkFace()"}},{"start":"84.73","end":"84.83","data":{"code":"blinkFace()"}},{"start":"85.05","end":"85.15","data":{"code":"blinkFace()"}},{"start":"85.37","end":"85.47","data":{"code":"blinkFace()"}},{"start":"86.02","end":"86.12","data":{"code":"blinkFace()"}},{"start":"10.66","end":"10.76","data":{"code":"blinkFace()"}},{"start":"12.32","end":"12.42","data":{"code":"blinkFace()"}},{"start":"13.30","end":"13.40","data":{"code":"blinkFace()"}},{"start":"13.58","end":"13.68","data":{"code":"blinkFace()"}},{"start":"13.94","end":"14.04","data":{"code":"blinkFace()"}},{"start":"14.30","end":"14.40","data":{"code":"blinkFace()\n\ncc.clearRect(0,0,window.innerWidth,window.innerHeight) "}},{"start":"15.04","end":"15.14","data":{"code":"blinkFace()"}},{"start":"15.29","end":"15.39","data":{"code":"blinkFace()"}},{"start":"15.85","end":"15.95","data":{"code":"blinkFace()"}},{"start":"17.72","end":"17.82","data":{"code":"blinkFace()"}},{"start":"18.60","end":"18.70","data":{"code":"blinkFace()"}},{"start":"19.29","end":"19.39","data":{"code":"blinkFace()"}},{"start":"20.27","end":"20.37","data":{"code":"blinkFace()"}},{"start":"20.66","end":"20.76","data":{"code":"blinkFace()\n"}},{"start":"24.28","end":"24.38","data":{"code":"blinkFace()"}},{"start":"86.26","end":"86.36","data":{"code":"cc.clearRect(0,0,window.innerWidth,window.innerHeight)"}}],
       
       onCanPlay: function(){
-      	// alert('can play')
-      	console.log('onCanPlay triggered')
+     
       },
 
       onPlay: function(){
-      	console.log('onPlay triggered')
+     
       },
 
       onPause: function(){
-      	console.log('onPause triggered')
+     
       },
 
-      onFrame: function(){
-      	console.log('onFrame triggered, do/render something')
+      onFrame: function(time){
+
+      	// var sin60 = Math.sin(time/2) * 60
+      	// console.log(sin60)
+      	// if( !isNaN(sin60) )	paramsRange[5] = sin60
+
+      	doMorphs2()
+
+      	// draw face
+      	if( clearFaceCanvas ){
+      		cc.fillStyle = 'rgba(0, 0, 0, .03)';
+      		cc.fillRect(0,0,window.innerWidth,window.innerHeight)
+      	}
+
+      	if( time ) draw(document.getElementById('compare'), paramsRange)
 
       	// Everything after this line would change based on your project.
       	// In this example we are updating 3D shapes initialized above
