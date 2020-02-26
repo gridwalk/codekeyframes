@@ -28,6 +28,7 @@ function CodeKeyframes(args){
   // insert editor HTML
   document.querySelector('body').insertAdjacentHTML('beforeend',`
     <div class="ckf-panel">
+    	<button class="ckf-audio-toggle"></button>
       <div class="ckf-waveform" tabindex="0"></div>
       <div class="ckf-toolbox">
 	    	<div class="code-editor">
@@ -47,12 +48,13 @@ function CodeKeyframes(args){
       </div>
     </div>`)
 
-  this._panel        = document.querySelector('.ckf-panel')
-  this._code         = document.querySelector('.ckf-panel #code')
-  this._codeEditor   = document.querySelector('.ckf-panel .code-editor')
-  this._stateEditor  = document.querySelector('.ckf-panel .state-editor')
-  this._renderButton = document.querySelector('.ckf-panel .render')
-  this._closeButton  = document.querySelector('.ckf-panel .close')
+  this._panel             = document.querySelector('.ckf-panel')
+  this._code              = document.querySelector('.ckf-panel #code')
+  this._codeEditor        = document.querySelector('.ckf-panel .code-editor')
+  this._stateEditor       = document.querySelector('.ckf-panel .state-editor')
+  this._renderButton      = document.querySelector('.ckf-panel .render')
+  this._closeButton       = document.querySelector('.ckf-panel .close')
+  this._audioToggleButton = document.querySelector('.ckf-audio-toggle')
 
   if( this.label ){
     _label = document.createElement('div')
@@ -143,6 +145,10 @@ function CodeKeyframes(args){
 
   this._closeButton.onclick = (e) => {
   	this.toggleEditor()
+  }
+
+  this._audioToggleButton.onclick = (e) => {
+  	this.toggleMute()
   }
 
   document.addEventListener('keydown', (e) => {
@@ -570,6 +576,11 @@ function CodeKeyframes(args){
 		    </div>`)
 
 		}
+  }
+
+  this.toggleMute = () => {
+  	this._audioToggleButton.classList.toggle("muted");
+  	this.wavesurfer.toggleMute();
   }
 
   /*

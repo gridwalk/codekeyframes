@@ -293,4 +293,32 @@
 	::-webkit-scrollbar-corner {
 		background: transparent;
 	}
+
+	.ckf-audio-toggle{
+		position: absolute;
+		bottom: calc(100% + 10px);
+		right: 10px;
+		appearance:none;
+		border:0;
+		width: 20px;
+		height: 20px;
+		border-radius:50%;
+		background-color: rgba(255,255,255,.7);
+		background-image: url('data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20version%3D%221.0%22%20viewBox%3D%220%200%2075%2075%22%3E%3Cpath%20d%3D%22M39%2014L22%2029H6v19h16l17%2015V14z%22%20stroke%3D%22%23111%22%20stroke-width%3D%225%22%20stroke-linejoin%3D%22round%22%20fill%3D%22%23111%22%2F%3E%3Cpath%20d%3D%22M48%2028a20%2020%200%20010%2021m7-28a30%2030%200%20010%2035m7-42a39%2039%200%20010%2049%22%20fill%3D%22none%22%20stroke%3D%22%23111%22%20stroke-width%3D%225%22%20stroke-linecap%3D%22round%22%2F%3E%3C%2Fsvg%3E');
+		background-size: 12px;
+		background-repeat: no-repeat;
+		background-position: 50%;
+		cursor: pointer;
+		transition:.2s all;
+
+		&.muted{
+			background-image: url('data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20version%3D%221.0%22%20viewBox%3D%220%200%2075%2075%22%3E%3Cg%20stroke%3D%22%23111%22%20stroke-width%3D%225%22%3E%3Cpath%20stroke-linejoin%3D%22round%22%20fill%3D%22%23111%22%20d%3D%22M39%2014L22%2029H6v19h16l17%2015V14z%22%2F%3E%3Cpath%20d%3D%22M49%2050l20-24M69%2050L49%2026%22%20fill%3D%22none%22%20stroke-linecap%3D%22round%22%2F%3E%3C%2Fg%3E%3C%2Fsvg%3E');
+		}
+
+		&:hover{
+			background-color: #fff;
+			transition:0s all;
+		}
+	}
+
 }
