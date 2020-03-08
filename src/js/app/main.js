@@ -2,18 +2,23 @@ function CodeKeyframes(args){
 
   if( !args.audioPath ) return
 
-  this.audioPath  = args.audioPath
-  this.editorOpen = args.editorOpen || false
-  this.keyframes  = args.keyframes  || []
-  this.label      = args.label
-  this.autoplay   = args.autoplay   || false
-  this.state      = args.state      || {}
+  this.audioPath   = args.audioPath
+  this.editorOpen  = args.editorOpen  || false
+  this.hideWave    = args.hideWave    || false
+  this.keyframes   = args.keyframes   || []
+  this.label       = args.label
+  this.playText    = args.playText    || "Play"
+  this.loadingText = args.loadingText || ""
+  this.autoplay    = args.autoplay    || false
+  this.state       = args.state       || {}
+  this.time        = 0
 
   // event callbacks
   this.onFrame    = args.onFrame    || function(){}
   this.onCanPlay  = args.onCanPlay  || function(){}
   this.onPause    = args.onPause    || function(){}
   this.onPlay     = args.onPlay     || function(){}
+  this.onFinish   = args.onFinish   || function(){}
 
   this.activeRegion = null
   this.skipLength   = 1
@@ -27,8 +32,19 @@ function CodeKeyframes(args){
 
   // insert editor HTML
   document.querySelector('body').insertAdjacentHTML('beforeend',`
-    <div class="ckf-panel">
-    	<button class="ckf-audio-toggle"></button>
+  	
+  	<div class="ckf-loading">
+  		<div class="ckf-loading-text">${ this.loadingText }</div>
+  		<div class="ckf-start">
+	  		<div class="ckf-loading-progress-text"></div>
+	  		<div class="ckf-loading-bar">
+	  			<div class="ckf-loading-bar-inner"></div>
+	  		</div>
+	  		<div class="ckf-play-button">${ this.playText }</div>
+  		</div>
+  	</div>
+
+    <div class="ckf-panel" hide-wave-when-closed="${ this.hideWave }">
       <div class="ckf-waveform" tabindex="0"></div>
       <div class="ckf-toolbox">
 	    	<div class="code-editor">
@@ -44,17 +60,24 @@ function CodeKeyframes(args){
 	      <div class="controls">
 	        <a href="#" class="render">Export Keyframes</a>
 	        <a href="#" class="close">Toggle Editor (E)</a>
+	        <a href="#" class="discard-changes">Discard Changes</a>
 	      </div>
       </div>
     </div>`)
 
-  this._panel             = document.querySelector('.ckf-panel')
-  this._code              = document.querySelector('.ckf-panel #code')
-  this._codeEditor        = document.querySelector('.ckf-panel .code-editor')
-  this._stateEditor       = document.querySelector('.ckf-panel .state-editor')
-  this._renderButton      = document.querySelector('.ckf-panel .render')
-  this._closeButton       = document.querySelector('.ckf-panel .close')
-  this._audioToggleButton = document.querySelector('.ckf-audio-toggle')
+  this._panel          = document.querySelector('.ckf-panel')
+  this._code           = document.querySelector('.ckf-panel #code')
+  this._codeEditor     = document.querySelector('.ckf-panel .code-editor')
+  this._stateEditor    = document.querySelector('.ckf-panel .state-editor')
+  this._renderButton   = document.querySelector('.ckf-panel .render')
+  this._discardButton  = document.querySelector('.ckf-panel .discard-changes')
+  this._closeButton    = document.querySelector('.ckf-panel .close')
+
+  this._loadingCtn          = document.querySelector('.ckf-loading')
+  this._loadingBar          = document.querySelector('.ckf-loading-bar')
+  this._loadingBarInner     = document.querySelector('.ckf-loading-bar-inner')
+  this._loadingProgressText = document.querySelector('.ckf-loading-progress-text')
+  this._playButton          = document.querySelector('.ckf-play-button')
 
   if( this.label ){
     _label = document.createElement('div')
@@ -62,12 +85,6 @@ function CodeKeyframes(args){
     _label.classList.add('ckf-label')
     this._panel.appendChild(_label)
   }
-
-  // immediately close editor if needed
-  if( !this.editorOpen ){
-  	this.toggleEditor()
-  }
-
   
   /*
   
@@ -107,7 +124,12 @@ function CodeKeyframes(args){
     if( e.which == 33 ) return
     if( e.which == 34 ) return
     e.stopPropagation()
-  }  
+  }
+
+  this._playButton.onclick = () =>{
+  	this._loadingCtn.classList.add('hidden')
+  	this.wavesurfer.play()
+  }
 
   this._stateEditor.oninput = (e) => {
 
@@ -135,6 +157,7 @@ function CodeKeyframes(args){
       })
     }
 
+
     this.activeRegion = null
     this._code.value = JSON.stringify(keyframes)
     this._code.select()
@@ -143,12 +166,16 @@ function CodeKeyframes(args){
 
   }
 
-  this._closeButton.onclick = (e) => {
-  	this.toggleEditor()
+  this._discardButton.onclick = (e) => {
+  	var confirmation = confirm("Are you sure?\n\nYour keyframes will reset to what has been copied into the keyframes variable in your initialization.")
+  	if( confirmation == true ){
+  		localStorage.clear()
+  		location.reload()
+  	}
   }
 
-  this._audioToggleButton.onclick = (e) => {
-  	this.toggleMute()
+  this._closeButton.onclick = (e) => {
+  	this.toggleEditor()
   }
 
   document.addEventListener('keydown', (e) => {
@@ -265,6 +292,13 @@ function CodeKeyframes(args){
       
       // space
       32:()=>{
+
+      	// chain to play button click if we're waiting on the loading/ready screen
+      	if( this._loadingCtn.classList.contains('loaded') && !this._loadingCtn.classList.contains('hidden') ){
+      		this._playButton.click()
+      		return
+      	}
+
         this.wavesurfer.playPause()
         this._code.classList.remove('error')
       },
@@ -324,6 +358,11 @@ function CodeKeyframes(args){
   
   */
 
+  this.renderLoop = ()=>{
+  	requestAnimationFrame( this.renderLoop )
+  	this.onFrame(this.time)
+  }
+
   this.saveRegions = ()=>{
 
     if( !this.editorOpen ) return
@@ -348,7 +387,7 @@ function CodeKeyframes(args){
 
     // load regions from localstorage
     var localRegions = []
-    if( localStorage.regions && this.editorOpen ) {
+    if( localStorage.regions ) {
       localRegions = JSON.parse(localStorage.regions)
     }
 
@@ -373,7 +412,7 @@ function CodeKeyframes(args){
         start:  region.start,
         end:    region.end,
         data:   region.data,
-        drag:   true,
+        drag:   false,
         resize: false
       })
     })
@@ -549,8 +588,16 @@ function CodeKeyframes(args){
 
   this.toggleEditor = () => {
   	this._panel.classList.toggle('closed')
-    this.editorOpen = !this.editorOpen
+
+  	this.editorOpen = true
+  	if(this._panel.classList.contains('closed')) this.editorOpen = false
   }
+
+  // immediately close editor if editorOpen param is false
+  // weirdly have to put this down here below the function declaration
+  // todo: write an init function instead of initializing everything at the top
+  // and move this in it
+  if( !this.editorOpen ) this.toggleEditor()
 
   this.updateStatePanel = (regionState) => {
 
@@ -576,11 +623,6 @@ function CodeKeyframes(args){
 		    </div>`)
 
 		}
-  }
-
-  this.toggleMute = () => {
-  	this._audioToggleButton.classList.toggle("muted");
-  	this.wavesurfer.toggleMute();
   }
 
   /*
@@ -616,6 +658,12 @@ function CodeKeyframes(args){
 
   this.wavesurfer.load(this.audioPath)
 
+  // progress bar
+  this.wavesurfer.on('loading', (percent) => {
+  	this._loadingBarInner.style.width = percent+"%"
+  	this._loadingProgressText.innerHTML = `Loading Audio: ${percent}%`
+  })
+
   // run function passed to codekeyframes on init
   this.wavesurfer.on('pause', () => {
  		this.onPause()
@@ -640,13 +688,15 @@ function CodeKeyframes(args){
     // populate the state panel
     this.updateStatePanel()
 
-    // run initial onFrame function once
-    this.onFrame()
+    // begin render loop
+    this.renderLoop()
 
     // autoplay
     if(this.autoplay){
       this.wavesurfer.play()
     }
+
+    this._loadingCtn.classList.add('loaded')
 
     this.onCanPlay()
   })
@@ -662,13 +712,12 @@ function CodeKeyframes(args){
 
   this.wavesurfer.on('audioprocess', () => {
 
-    var time    = this.wavesurfer.getCurrentTime()
 
-  	this.onFrame(time)
+  	this.time = this.wavesurfer.getCurrentTime()
 
     var command = this.sequence[this.sequenceCursor]
     if( !command ) return
-    if( time > command.time ){
+    if( this.time > command.time ){
       this.sequenceCursor++      
 
       // find the region to show
@@ -682,5 +731,10 @@ function CodeKeyframes(args){
 
     }
   })
+
+  this.wavesurfer.on('finish', () => {
+  	this.onFinish()
+  })
+
 
 }

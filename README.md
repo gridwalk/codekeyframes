@@ -20,6 +20,7 @@ A browser based tool for running JavaScript code at specific frames of an audio 
 var ckf = new CodeKeyframes({
   audioPath:     './path/to-audio.mp3',
   editorOpen:    true,
+  hideWave:      false,     // hide wave when editor is closed
   waveColor:     '#3AEAD2', // wave color right of the playhead
   progressColor: '#0c9fa7', // wave color left of the playhead
   bgColor:       '#222',    // color behind waveform

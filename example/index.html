@@ -2,18 +2,38 @@
 
 <head>
   <title>TAKASHI & KIYOKO by EMINA</title>
+  <meta name="viewport" content="width=device-width">
   <link rel="stylesheet" href="codeKeyframes.css">
 
+  <!-- Open Graph tags for social media -->
+  <meta property="og:title" content="TAKASHI & KIYOKO Interactive Music Video">
+  <meta property="og:description" content="Music by EMINA, Visual by d0n.xyz, Presented by Gridwalk">
+  <meta property="og:image" content="https://emina.gridwalk.net/takashi-kiyoko/poster.png">
+  <meta property="og:url" content="https://emina.gridwalk.net/takashi-kiyoko">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta property="og:site_name" content="TAKASHI & KIYOKO Interactive Music Video">
+
   <style>
+
+  	html{
+  		visibility: visible!important;
+  	}
 
     body{
     	background-color: #000;
     	overflow: hidden;
     	color:#fff;
-    	font-family: monospace;
+    	font-family: monaco, monospace;
+  		-webkit-font-smoothing:antialiased;
     	margin: 0;
     	padding: 0;
+    	font-size: 12px;
     }
+
+    a{
+    	color:#00ccc2;
+    }
+
     #content {
       position: absolute;
       top: 0;
@@ -21,16 +41,10 @@
       width: 100vw;
       height: 100vh;
     }
-    #compare{
-    	/*width: 100vw;*/
-    	/*height: 100vh;*/
-    }
-
     canvas:not(.control){
     	position: absolute;
     	z-index: 1;
     }
-
     label {
     	position: relative;
     	color : #7a7a7a;
@@ -48,27 +62,23 @@
     	flex-direction: column;
     	z-index: 2;
     	display: none;
-    	
-    	
     }
+
+		@media (max-height: 400px){
+			.ckf-loading{
+				flex-direction: row;
+				justify-content: space-evenly;
+			}
+			.ckf-loading>*{
+				max-width:50%!important;
+			}
+		}
     
   </style>
 </head>
 
 <body>
 
-	<!-- helpers -->
-	<script>
-		
-		function rRange(min, max) {
-		  return Math.random() * (max - min) + min;
-		}
-
-		function r(max) {
-			return Math.random() * max
-		}
-
-	</script>
 
 	<!-- CLM -->
 
@@ -77,11 +87,8 @@
     <br>
 	</div>
   
-  <div class="face-controls">
+  <!-- <div class="face-controls">
     <label>0 <input type="range" name="param1" min="0" max="10" step='0.1' oninput="rangeInput(this.value, 0)"></label>
-    <!-- <label>1 <input type="range" name="param2" min="-60" max="60" oninput="rangeInput(this.value, 1)"></label> -->
-    <!-- <label>2 <input type="range" name="param3" min="-60" max="60" oninput="rangeInput(this.value, 2)"></label> -->
-    <!-- <label>3 <input type="range" name="param1" min="-60" max="60" oninput="rangeInput(this.value, 3)"></label> -->
     <label>4 <input type="range" name="param2" min="-60" max="60" oninput="rangeInput(this.value, 4)"></label>
     <label>5 <input type="range" name="param3" min="-60" max="60" oninput="rangeInput(this.value, 5)"></label>
     <label>6 <input type="range" name="param1" min="-60" max="60" oninput="rangeInput(this.value, 6)"></label>
@@ -102,44 +109,63 @@
     <label>21<input type="range" name="param3" min="-60" max="60" oninput="rangeInput(this.value, 21)"></label>    	
     <label>22<input type="range" name="param3" min="-60" max="60" oninput="rangeInput(this.value, 22)"></label>    	
     <label>23<input type="range" name="param3" min="-60" max="60" oninput="rangeInput(this.value, 23)"></label>    	
-  </div>
+  </div> -->
 
-	<script src='clm-model.js'></script>
+	<script src='./vendor-js/clm-model.js'></script>
+	<!-- helpers -->
 	<script>
-		
-		var faceScale = window.innerWidth * 0.003
-		var paramsRange = [faceScale, 0, 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0];
-		fixFaceScale()
-
-		var clearFaceCanvas = true
-
-		function rangeInput(val, num) {
-		  paramsRange[num] = val;
-
-		  fixFaceScale()
-
-		  if(clearFaceCanvas) cc.clearRect(0,0,window.innerWidth,window.innerHeight)
-		  draw(document.getElementById('compare'), paramsRange);     
+	
+		// helper functions
+		function rRange(min, max) {
+		  return Math.random() * (max - min) + min;
 		}
 
+		function r(max) {
+			return Math.random() * max
+		}
 
-		var canvasInput = document.getElementById('compare');
+		Array.prototype.random = function () {
+		  return this[Math.floor((Math.random()*this.length))];
+		}
 
-		canvasInput.setAttribute('width',window.innerWidth)
-		canvasInput.setAttribute('height',window.innerHeight)
+	</script>
+	<script>
+		
+		
+		// Global variables
 
-		var cc = canvasInput.getContext('2d');
-		cc.fillStyle = "rgb(200,0,0)";
-
-		var paramslength = paramsRange.length;
-		var num_points = pModel.shapeModel.numPtsPerSample;
-
-		var x,y;
-
+		// face stuff
+		var x, y, i, path
 		var xOffset = 0
 		var yOffset = 0
+		var faceScale = window.innerWidth * 0.003
+		var singing = false
+		var singingCounter = 0
+		var paramsRange = [faceScale, 0, 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]
+		var faceColor = '#000'
+		var clearFaceCanvas = true
+		var canvasInput = document.getElementById('compare');
+		var positionFlop = 0
+		var morphAmount = 5
+		var faceOpacityInterval = null
 
-		var i, path;
+		var context = canvasInput.getContext('2d')
+
+		// three js stuff
+
+		var pyramidGroupRotation = 0
+
+		fixFaceScale()
+
+		// range input puppetry listener
+
+		// function rangeInput(val, num) {
+		//   paramsRange[num] = val;
+		//   fixFaceScale()
+		//   if(clearFaceCanvas) context.clearRect(0,0,window.innerWidth,window.innerHeight)
+		//   drawFace(document.getElementById('compare'), paramsRange);     
+		// }
+
 
 		function drawPath(canvasContext, path, dp) {
 			canvasContext.beginPath();
@@ -196,7 +222,7 @@
 		}
 
 
-		var draw = function(canvas, pv) {
+		var drawFace = function(canvas, pv) {
 
 		  // if no previous points, just draw in the middle of canvas
 		  var params;
@@ -206,24 +232,22 @@
 		    params = pv.slice(0);
 		  }
 
-		  var cc = canvas.getContext('2d');
-		  cc.fillStyle = "rgb(255,255,255)";
-		  cc.strokeStyle = "rgb(255,255,255)";
-		  cc.save();
+		  context = canvas.getContext('2d');
+		  context.fillStyle = faceColor;
+		  context.strokeStyle = faceColor;
+		  context.save();
 
 		  var paths = pModel.path.normal;
 		  for (var i = 0;i < paths.length;i++) {
 		    if (typeof(paths[i]) == 'number') {
-		      drawPoint(cc, paths[i], params);
+		      drawPoint(context, paths[i], params);
 		    } else {
-		      drawPath(cc, paths[i], params);
+		      drawPath(context, paths[i], params);
 		    }
 		  }
 
-		  cc.restore()
+		  context.restore()
 		}
-			  
-		// draw( document.getElementById('compare'), paramsRange )
 
 		function fixFaceScale() {
 			var faceScale = paramsRange[0]
@@ -236,31 +260,27 @@
 
 		}
 
-		function vocalize() {
-			paramsRange[6] = -5
+		function vocalize(increment) {
+			paramsRange[6] = -10
+			if( voxLoop ) clearInterval(voxLoop)
+			if(!increment) increment = 2
 			var voxLoop = setInterval(function(){
-				paramsRange[6]++
+				paramsRange[6] = paramsRange[6] + increment
 				if( paramsRange[6] >= 10 ) clearInterval(voxLoop)
 			},25)
 		}
 
-		var flop = 0
 		function randomizeFacePosition(){
-
-			// xOffset = ( r(window.innerWidth) - window.innerWidth/2 )
-			// while( xOffset < 150 && xOffset > -150 ) xOffset = ( r(window.innerWidth) - window.innerWidth/2 )
-			// console.log(xOffset) 
-
-
+			                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      
 			var facePan
-			if( flop ){
-				xOffset = rRange( window.innerWidth*-.4, -250 )
+			if( positionFlop ){
+				xOffset = rRange( window.innerWidth*-.4, ((window.innerWidth*0.2)*-1) )
 				facePan = rRange(30,60)
-				flop = 0
+				positionFlop = 0
 			}else{
-				xOffset = rRange( 250, window.innerWidth*.4 )			
+				xOffset = rRange( (window.innerWidth*0.2), window.innerWidth*.4 )			
 				facePan = rRange(-60,-30)
-				flop = 1
+				positionFlop = 1
 			}
 
 			paramsRange[4] = facePan
@@ -268,79 +288,101 @@
 			yOffset = rRange( (window.innerHeight*-0.4), (window.innerHeight*0.4) )
 		}
 
-		var opaLoop
+		function centerFace(increment){
+
+			// face size
+			paramsRange[0] = window.innerWidth * 0.004
+			if( window.innerWidth < 900 ) paramsRange[0] = window.innerWidth * 0.006
+			fixFaceScale()
+
+			// zero out everything
+			var zeroed = true
+			for (var i = 4; i < paramsRange.length; i++) {
+				if( paramsRange[i] > 0 ) paramsRange[i] -= increment
+				if( paramsRange[i] < 0 ) paramsRange[i] += increment
+				if( paramsRange[i] < -10 || paramsRange[i] > 10 ) zeroed = false
+			}
+
+			if( xOffset > -30 ) xOffset -= increment
+			if( xOffset < -30 ) xOffset += increment
+			if( yOffset > 0 ) yOffset -= increment
+			if( yOffset < 0 ) yOffset += increment
+
+			if( xOffset < -40 || xOffset > -20 || yOffset < -10 || yOffset > 10 ) zeroed = false
+
+			// if any param is not zeroed out, run this again
+			if( !zeroed ){
+				setTimeout(function(){
+					centerFace(increment)
+				},10)
+			}
+
+		}
+
+		function resetFace(){
+			for (var i = 4; i < paramsRange.length; i++) {
+				paramsRange[i] = 0
+			}
+		}
+
 		function fadeFaceOut() {
-			clearInterval(opaLoop)
+			clearInterval(faceOpacityInterval)
 			var o = 1
-			window.opaLoop = setInterval(function(){
+			faceOpacityInterval = setInterval(function(){
 				window.compare.style.opacity = o
 				o -= 0.025
-				if( o <= 0 ) clearInterval(opaLoop)
+				if( o <= 0 ) clearInterval(faceOpacityInterval)
 			},25)
 		}
 
 		function randomizeFaceScale() {
-
 			paramsRange[0] = rRange( window.innerWidth * 0.002, window.innerWidth * 0.004)
 			fixFaceScale()
-
 		}
 
 		function blinkFace() {
-			
 			vocalize()
 			randomizeFacePosition()
 			randomizeFaceScale()
-			// fadeFaceOut()
-
-		}
-
-		var morphs = []
-
-		function randomFaceMorph() {
-			var paramKey = Math.floor(rRange(6,23))
-			morphs[paramKey] = r(0.1)-0.05
-			console.log(morphs)
-		}
-
-		function doMorphs(argument) {
-			for (var paramKey in morphs) {
-				var increment = morphs[paramKey]
-				paramsRange[paramKey] += increment
-				if( paramsRange[paramKey] > 160 || paramsRange[paramKey] < -160 ) morphs[paramKey] = 0
-			}
 		}
 
 		function doMorphs2(){
 			var paramKey = Math.floor(rRange(6,23))
-			paramsRange[paramKey] += r(5)-2.5
+			paramsRange[paramKey] += r( morphAmount ) - (morphAmount/2)
 		}
 					
 	</script>
 
 	
-  <script src='https://cdn.jsdelivr.net/gh/mrdoob/three.js@r109/build/three.min.js'></script>
+  <script src='./vendor-js/three.min.js'></script>
 
 	<!-- Set up the Three JS scene -->
 	<script>
+
+		var _body = document.querySelector('body')
 		var winW = window.innerWidth
 		var winH = window.innerHeight
 
-		var scene = new THREE.Scene()
-		var camera = new THREE.PerspectiveCamera(50, winW / winH, 0.01, 20)
+		var scene     = new THREE.Scene()
+		var maxRender = 50
+		var camera    = new THREE.PerspectiveCamera(50, winW / winH, 0.01, maxRender)
 
 		var renderer = new THREE.WebGLRenderer({
 		  antialias: false,
-		  alpha:true
+		  alpha:true,
+		  preserveDrawingBuffer:true
 		})
+
+		renderer.autoClearColor = true
+
 		renderer.setSize(winW, winH)
-		document.body.appendChild(renderer.domElement)
+		_body.appendChild(renderer.domElement)
 		
 		// create pyramids
 		var radius = 4
 		var height = 5
 
-		var geometry = new THREE.CylinderGeometry(0, radius, height, 4, 1)
+		var geometry = new THREE.OctahedronGeometry(radius, 0)
 		var material = new THREE.MeshNormalMaterial()
 		var pyramid  = new THREE.Mesh(geometry, material)
 		var pyramid2 = new THREE.Mesh(geometry, material)
@@ -351,7 +393,7 @@
 		pyramidGroup.add(pyramid2)
 		scene.add(pyramidGroup)
 
-		pyramid2.rotation.z = 0.1
+		pyramid.rotation.z = -0.5
 
 		// Make a cube
 		var boxGeometry = new THREE.CubeGeometry(7.5, 7.5, 7.5)
@@ -359,36 +401,174 @@
 		  color: '#fff',
 		  wireframe: true,
 		})
-		var boxMesh = new THREE.Mesh(boxGeometry, boxMaterial)
-		scene.add(boxMesh)
 
+		var boxGroup = new THREE.Group()
+		var boxMesh = new THREE.Mesh(boxGeometry, boxMaterial)
+		boxGroup.add(boxMesh)
+		scene.add(boxGroup)
 		camera.position.z = 15
+
+		function spinPyramids(){
+
+			context.clearRect(0,0,window.innerWidth,window.innerHeight)
+
+			var axises = ['x','y','z']
+
+			var axis1 = axises.random()
+			var axis2 = axises.random()
+
+			window.spinPyAmount = 0.10
+			window.offsetCounter = 0
+			window.spinPyrInt = setInterval(function(){
+				
+				offsetCounter++
+				spinPyAmount -= 0.0005
+
+				var frequency = 0.0031
+				var offset = Math.sin(offsetCounter * 2 * Math.PI * frequency) * 2;
+
+				pyramid.position.x   = offset 
+		   	pyramid2.position.x  = offset*-1
+
+				pyramid.rotation[ axis1 ]  -= spinPyAmount
+				pyramid2.rotation[ axis2 ] += spinPyAmount
+
+				if( spinPyAmount <= 0 ) clearInterval(spinPyrInt)
+			},10)
+		}
+
+		var inFormation2 = false
+		function pyramidFormation2(){
+
+			inFormation2 = true
+
+			camera.far = 30
+	    if( window.innerWidth > 500  ) camera.far = 21
+	    if( window.innerWidth > 900  ) camera.far = 18
+	    camera.updateProjectionMatrix();
+
+			window.formation2 = setInterval(function(){
+				
+				var finished = true
+
+				if( ckf.state.pyramidXOffset < 30 ){
+					ckf.state.pyramidXOffset = parseFloat(ckf.state.pyramidXOffset) + 0.1
+					finished = false
+				}
+
+				if( ckf.state.pyramidGroupScale > 0.2 ){
+					ckf.state.pyramidGroupScale -= 0.0027
+					finished = false
+				}
+				
+
+				if( finished ) clearInterval(formation2)
+
+			},10)			
+		}
+
+		// Resize stuff
+		window.addEventListener( 'resize', onWindowResize, false );
+		window.addEventListener("orientationchange", onWindowResize );
+
+		function onWindowResize(){
+			// resize face canvas
+			canvasInput.setAttribute('width',window.innerWidth)
+			canvasInput.setAttribute('height',window.innerHeight)
+
+			// resize Three js canvas
+	    camera.aspect = window.innerWidth / window.innerHeight
+	    camera.updateProjectionMatrix()
+	    renderer.setSize( window.innerWidth, window.innerHeight )
+
+	    camera.position.z = 25
+	    if( window.innerWidth > 500  ) camera.position.z = 20
+	    if( window.innerWidth > 900  ) camera.position.z = 15
+
+	    if( inFormation2 ) centerFace(1)
+		}
+
+		onWindowResize()
+
+
+
+		var touchOnlyStart = function(){
+			faceColor = '#00ccc2'
+			window.previousParamsRange = paramsRange.slice(0)
+			window.previousMorph = morphAmount
+			morphAmount = morphAmount + 20			
+			boxMesh.material.color.setHex( 0x00ccc2 )
+		}
+
+		var touchOnlyEnd = function(){
+			faceColor = '#fff'
+			newFacePan =  paramsRange[4]
+			morphAmount = previousMorph
+			paramsRange = previousParamsRange
+			paramsRange[4] = newFacePan			
+			boxMesh.material.color.setHex( 0xffffff )
+		}
+
+		var mouseOnlyStart = function(){
+			faceColor = '#00ccc2'
+			window.previousParamsRange = paramsRange.slice(0)
+			window.previousMorph = morphAmount
+			morphAmount = morphAmount + 20			
+			boxMesh.material.color.setHex( 0x00ccc2 )
+		}
+
+		var mouseOnlyEnd = function(){
+			faceColor = '#fff'
+			newFacePan =  paramsRange[4]
+			morphAmount = previousMorph
+			paramsRange = previousParamsRange
+			paramsRange[4] = newFacePan			
+			boxMesh.material.color.setHex( 0xffffff )
+		}
+
+		_body.addEventListener("touchstart",touchOnlyStart,false)
+		_body.addEventListener("touchend",touchOnlyEnd,false)
+		_body.addEventListener("mousedown",mouseOnlyStart,false)
+		_body.addEventListener("mouseup",mouseOnlyEnd,false)
 
 	</script>
 
 	<!-- Required inclusion of codekeyframes -->
-  <script src='codeKeyframes.js'></script>
+  <script src='./codeKeyframes.js'></script>
+
+  <!-- exported keyframes saved in a separate file -->
+  <script src='./exported-keyframes.js'></script>
 
 	<!-- CKF Initialization -->
   <script>
     var ckf = new CodeKeyframes({
       
       audioPath:     './audio/takashi-and-kiyoko.mp3',
-      editorOpen:    true,
+      editorOpen:    false,
+      hideWave:      true,
       waveColor:     '#3AEAD2',
       progressColor: '#0c9fa7',
       bgColor:       '#222',
       label:         'TAKASHI & KIYOKO by EMINA | Visual: d0n.xyz',
       autoplay:      false,
-      
+      loadingText: `<a href='https://eminagold.bandcamp.com' target='_blank'><img src="./img/emina-cover.jpg"></a>
+      	<h1>TAKASHI &amp; KIYOKO</h1>
+				<div>MUSIC: <a href='https://eminagold.bandcamp.com' target='_blank'>EMINA</a></div>
+				<div>VISUAL: <a href="https://d0n.xyz" target='_blank'>d0n.xyz</a></div>
+				<div>Presented by <a href="https://gridwalk.net">Gridwalk</a></div>`,      
       state: {
       	pyramidGroupScale: 1,
       	pyramidXOffset:    0,
+      	cubeScale:         1,
+      	cubeSineRange:     0.1,
       },
 
-      keyframes: [{"start":"2.77","end":"2.87","data":{"code":"blinkFace()"}},{"start":"0.20","end":"0.30","data":{"code":"blinkFace()"}},{"start":"4.57","end":"4.67","data":{"code":"blinkFace()"}},{"start":"5.53","end":"5.63","data":{"code":"blinkFace()"}},{"start":"6.27","end":"6.37","data":{"code":"blinkFace()"}},{"start":"7.30","end":"7.40","data":{"code":"blinkFace()"}},{"start":"8.27","end":"8.37","data":{"code":"blinkFace()"}},{"start":"8.88","end":"8.98","data":{"code":"blinkFace()\n\ncc.clearRect(0,0,window.innerWidth,window.innerHeight)"}},{"start":"9.92","end":"10.02","data":{"code":"blinkFace()"}},{"start":"10.93","end":"11.03","data":{"code":"blinkFace()"}},{"start":"11.55","end":"11.65","data":{"code":"blinkFace()\n\ncc.clearRect(0,0,window.innerWidth,window.innerHeight)"}},{"start":"12.54","end":"12.64","data":{"code":"blinkFace()"}},{"start":"16.27","end":"16.37","data":{"code":"blinkFace()"}},{"start":"16.95","end":"17.05","data":{"code":"blinkFace()\n\ncc.clearRect(0,0,window.innerWidth,window.innerHeight) "}},{"start":"17.96","end":"18.06","data":{"code":"blinkFace()"}},{"start":"18.85","end":"18.95","data":{"code":"blinkFace()"}},{"start":"19.55","end":"19.65","data":{"code":"blinkFace()\n\ncc.clearRect(0,0,window.innerWidth,window.innerHeight)"}},{"start":"21.28","end":"21.38","data":{"code":"blinkFace()"}},{"start":"21.65","end":"21.75","data":{"code":"blinkFace()"}},{"start":"22.01","end":"22.11","data":{"code":"blinkFace()"}},{"start":"22.34","end":"22.44","data":{"code":"blinkFace()"}},{"start":"22.98","end":"23.08","data":{"code":"blinkFace()"}},{"start":"23.31","end":"23.41","data":{"code":"blinkFace()"}},{"start":"23.92","end":"24.02","data":{"code":"blinkFace()"}},{"start":"24.32","end":"24.42","data":{"code":"blinkFace()\n"}},{"start":"24.69","end":"24.79","data":{"code":"blinkFace()"}},{"start":"25.10","end":"25.20","data":{"code":"blinkFace()"}},{"start":"25.42","end":"25.52","data":{"code":"blinkFace()"}},{"start":"25.79","end":"25.89","data":{"code":"blinkFace()"}},{"start":"26.11","end":"26.21","data":{"code":"blinkFace()"}},{"start":"26.43","end":"26.53","data":{"code":"blinkFace()"}},{"start":"26.76","end":"26.86","data":{"code":"blinkFace()"}},{"start":"27.12","end":"27.22","data":{"code":"blinkFace()"}},{"start":"27.45","end":"27.55","data":{"code":"blinkFace()"}},{"start":"27.73","end":"27.83","data":{"code":"blinkFace()\n"}},{"start":"28.06","end":"28.16","data":{"code":"blinkFace()"}},{"start":"28.38","end":"28.48","data":{"code":"blinkFace()"}},{"start":"28.69","end":"28.79","data":{"code":"blinkFace()"}},{"start":"28.97","end":"29.07","data":{"code":"blinkFace()"}},{"start":"29.30","end":"29.40","data":{"code":"blinkFace()"}},{"start":"29.62","end":"29.72","data":{"code":"blinkFace()"}},{"start":"30.02","end":"30.12","data":{"code":"blinkFace()"}},{"start":"30.35","end":"30.45","data":{"code":"blinkFace()"}},{"start":"30.67","end":"30.77","data":{"code":"blinkFace()"}},{"start":"31.04","end":"31.14","data":{"code":"blinkFace()\n"}},{"start":"31.32","end":"31.42","data":{"code":"blinkFace()"}},{"start":"31.68","end":"31.78","data":{"code":"blinkFace()"}},{"start":"32.01","end":"32.11","data":{"code":"blinkFace()"}},{"start":"32.37","end":"32.47","data":{"code":"blinkFace()"}},{"start":"32.69","end":"32.79","data":{"code":"blinkFace()"}},{"start":"33.06","end":"33.16","data":{"code":"blinkFace()"}},{"start":"33.38","end":"33.48","data":{"code":"blinkFace()"}},{"start":"33.71","end":"33.81","data":{"code":"blinkFace()"}},{"start":"34.03","end":"34.13","data":{"code":"blinkFace()"}},{"start":"34.35","end":"34.45","data":{"code":"blinkFace()\n"}},{"start":"34.67","end":"34.77","data":{"code":"blinkFace()"}},{"start":"35.04","end":"35.14","data":{"code":"blinkFace()"}},{"start":"35.36","end":"35.46","data":{"code":"blinkFace()"}},{"start":"35.69","end":"35.79","data":{"code":"blinkFace()"}},{"start":"36.01","end":"36.11","data":{"code":"blinkFace()"}},{"start":"36.38","end":"36.48","data":{"code":"blinkFace()"}},{"start":"36.66","end":"36.76","data":{"code":"blinkFace()"}},{"start":"36.99","end":"37.09","data":{"code":"blinkFace()"}},{"start":"37.35","end":"37.45","data":{"code":"blinkFace()"}},{"start":"37.67","end":"37.77","data":{"code":"blinkFace()\n"}},{"start":"38.00","end":"38.10","data":{"code":"blinkFace()"}},{"start":"38.37","end":"38.47","data":{"code":"blinkFace()"}},{"start":"38.73","end":"38.83","data":{"code":"blinkFace()"}},{"start":"39.02","end":"39.12","data":{"code":"blinkFace()"}},{"start":"39.34","end":"39.44","data":{"code":"blinkFace()"}},{"start":"39.66","end":"39.76","data":{"code":"blinkFace()"}},{"start":"39.98","end":"40.08","data":{"code":"blinkFace()"}},{"start":"40.34","end":"40.44","data":{"code":"blinkFace()"}},{"start":"40.66","end":"40.76","data":{"code":"blinkFace()"}},{"start":"41.02","end":"41.12","data":{"code":"blinkFace()\n","state":{"clearFaceCanvas":"0"}}},{"start":"41.31","end":"41.41","data":{"code":"blinkFace()"}},{"start":"41.67","end":"41.77","data":{"code":"blinkFace()"}},{"start":"41.96","end":"42.06","data":{"code":"blinkFace()"}},{"start":"42.32","end":"42.42","data":{"code":"blinkFace()"}},{"start":"42.60","end":"42.70","data":{"code":"blinkFace()"}},{"start":"43.00","end":"43.10","data":{"code":"blinkFace()"}},{"start":"43.33","end":"43.43","data":{"code":"blinkFace()"}},{"start":"43.69","end":"43.79","data":{"code":"blinkFace()"}},{"start":"44.01","end":"44.11","data":{"code":"blinkFace()"}},{"start":"44.38","end":"44.48","data":{"code":"blinkFace()"}},{"start":"44.70","end":"44.80","data":{"code":"blinkFace()"}},{"start":"45.07","end":"45.17","data":{"code":"blinkFace()"}},{"start":"45.40","end":"45.50","data":{"code":"blinkFace()"}},{"start":"45.72","end":"45.82","data":{"code":"blinkFace()"}},{"start":"46.08","end":"46.18","data":{"code":"blinkFace()"}},{"start":"46.41","end":"46.51","data":{"code":"blinkFace()"}},{"start":"46.73","end":"46.83","data":{"code":"blinkFace()"}},{"start":"47.06","end":"47.16","data":{"code":"blinkFace()"}},{"start":"47.38","end":"47.48","data":{"code":"blinkFace()"}},{"start":"47.71","end":"47.81","data":{"code":"blinkFace()"}},{"start":"48.02","end":"48.12","data":{"code":"blinkFace()"}},{"start":"48.34","end":"48.44","data":{"code":"blinkFace()"}},{"start":"48.66","end":"48.76","data":{"code":"blinkFace()"}},{"start":"49.03","end":"49.13","data":{"code":"blinkFace()"}},{"start":"49.35","end":"49.45","data":{"code":"blinkFace()"}},{"start":"49.71","end":"49.81","data":{"code":"blinkFace()"}},{"start":"50.08","end":"50.18","data":{"code":"blinkFace()"}},{"start":"50.36","end":"50.46","data":{"code":"blinkFace()"}},{"start":"50.72","end":"50.82","data":{"code":"blinkFace()"}},{"start":"51.04","end":"51.14","data":{"code":"blinkFace()"}},{"start":"51.36","end":"51.46","data":{"code":"blinkFace()"}},{"start":"51.72","end":"51.82","data":{"code":"blinkFace()"}},{"start":"52.04","end":"52.14","data":{"code":"blinkFace()"}},{"start":"52.37","end":"52.47","data":{"code":"blinkFace()"}},{"start":"52.69","end":"52.79","data":{"code":"blinkFace()"}},{"start":"53.02","end":"53.12","data":{"code":"blinkFace()"}},{"start":"53.34","end":"53.44","data":{"code":"blinkFace()"}},{"start":"53.70","end":"53.80","data":{"code":"blinkFace()"}},{"start":"54.02","end":"54.12","data":{"code":"blinkFace()"}},{"start":"54.38","end":"54.48","data":{"code":"blinkFace()"}},{"start":"54.71","end":"54.81","data":{"code":"blinkFace()"}},{"start":"55.03","end":"55.13","data":{"code":"blinkFace()"}},{"start":"55.39","end":"55.49","data":{"code":"blinkFace()"}},{"start":"55.72","end":"55.82","data":{"code":"blinkFace()"}},{"start":"56.04","end":"56.14","data":{"code":"blinkFace()"}},{"start":"56.40","end":"56.50","data":{"code":"blinkFace()"}},{"start":"56.67","end":"56.77","data":{"code":"blinkFace()"}},{"start":"57.03","end":"57.13","data":{"code":"blinkFace()"}},{"start":"57.36","end":"57.46","data":{"code":"blinkFace()"}},{"start":"57.68","end":"57.78","data":{"code":"blinkFace()"}},{"start":"58.01","end":"58.11","data":{"code":"blinkFace()"}},{"start":"58.37","end":"58.47","data":{"code":"blinkFace()"}},{"start":"58.69","end":"58.79","data":{"code":"blinkFace()"}},{"start":"59.01","end":"59.11","data":{"code":"blinkFace()"}},{"start":"59.37","end":"59.47","data":{"code":"blinkFace()"}},{"start":"59.73","end":"59.83","data":{"code":"blinkFace()"}},{"start":"60.05","end":"60.15","data":{"code":"blinkFace()"}},{"start":"60.38","end":"60.48","data":{"code":"blinkFace()"}},{"start":"60.70","end":"60.80","data":{"code":"blinkFace()"}},{"start":"61.07","end":"61.17","data":{"code":"blinkFace()"}},{"start":"61.39","end":"61.49","data":{"code":"blinkFace()"}},{"start":"61.67","end":"61.77","data":{"code":"blinkFace()"}},{"start":"62.03","end":"62.13","data":{"code":"blinkFace()"}},{"start":"62.39","end":"62.49","data":{"code":"blinkFace()"}},{"start":"62.67","end":"62.77","data":{"code":"blinkFace()"}},{"start":"63.04","end":"63.14","data":{"code":"blinkFace()"}},{"start":"63.36","end":"63.46","data":{"code":"blinkFace()"}},{"start":"63.73","end":"63.83","data":{"code":"blinkFace()"}},{"start":"64.05","end":"64.15","data":{"code":"blinkFace()"}},{"start":"64.37","end":"64.47","data":{"code":"blinkFace()"}},{"start":"64.69","end":"64.79","data":{"code":"blinkFace()"}},{"start":"65.01","end":"65.11","data":{"code":"blinkFace()"}},{"start":"65.34","end":"65.44","data":{"code":"blinkFace()"}},{"start":"65.70","end":"65.80","data":{"code":"blinkFace()"}},{"start":"66.03","end":"66.13","data":{"code":"blinkFace()"}},{"start":"66.39","end":"66.49","data":{"code":"blinkFace()"}},{"start":"66.71","end":"66.81","data":{"code":"blinkFace()"}},{"start":"66.99","end":"67.09","data":{"code":"blinkFace()"}},{"start":"67.36","end":"67.46","data":{"code":"blinkFace()"}},{"start":"67.72","end":"67.82","data":{"code":"blinkFace()"}},{"start":"68.37","end":"68.47","data":{"code":"blinkFace()"}},{"start":"68.74","end":"68.84","data":{"code":"blinkFace()"}},{"start":"69.14","end":"69.24","data":{"code":"blinkFace()"}},{"start":"69.42","end":"69.52","data":{"code":"blinkFace()"}},{"start":"69.98","end":"70.08","data":{"code":"blinkFace()"}},{"start":"70.35","end":"70.45","data":{"code":"blinkFace()"}},{"start":"70.71","end":"70.81","data":{"code":"blinkFace()"}},{"start":"71.04","end":"71.14","data":{"code":"blinkFace()"}},{"start":"71.73","end":"71.83","data":{"code":"blinkFace()"}},{"start":"72.01","end":"72.11","data":{"code":"blinkFace()"}},{"start":"72.66","end":"72.76","data":{"code":"blinkFace()"}},{"start":"73.02","end":"73.12","data":{"code":"blinkFace()"}},{"start":"73.39","end":"73.49","data":{"code":"blinkFace()"}},{"start":"73.71","end":"73.81","data":{"code":"blinkFace()"}},{"start":"74.04","end":"74.14","data":{"code":"blinkFace()"}},{"start":"74.40","end":"74.50","data":{"code":"blinkFace()"}},{"start":"74.68","end":"74.78","data":{"code":"blinkFace()"}},{"start":"75.40","end":"75.50","data":{"code":"blinkFace()"}},{"start":"75.72","end":"75.82","data":{"code":"blinkFace()"}},{"start":"76.05","end":"76.15","data":{"code":"blinkFace()"}},{"start":"76.37","end":"76.47","data":{"code":"blinkFace()"}},{"start":"76.78","end":"76.88","data":{"code":"blinkFace()"}},{"start":"77.02","end":"77.12","data":{"code":"blinkFace()"}},{"start":"77.38","end":"77.48","data":{"code":"blinkFace()"}},{"start":"78.06","end":"78.16","data":{"code":"blinkFace()"}},{"start":"78.35","end":"78.45","data":{"code":"blinkFace()"}},{"start":"78.71","end":"78.81","data":{"code":"blinkFace()"}},{"start":"79.04","end":"79.14","data":{"code":"blinkFace()"}},{"start":"79.40","end":"79.50","data":{"code":"blinkFace()"}},{"start":"79.68","end":"79.78","data":{"code":"blinkFace()"}},{"start":"80.04","end":"80.14","data":{"code":"blinkFace()"}},{"start":"80.77","end":"80.87","data":{"code":"blinkFace()"}},{"start":"81.09","end":"81.19","data":{"code":"blinkFace()"}},{"start":"81.46","end":"81.56","data":{"code":"blinkFace()"}},{"start":"81.74","end":"81.84","data":{"code":"blinkFace()"}},{"start":"82.06","end":"82.16","data":{"code":"blinkFace()"}},{"start":"82.38","end":"82.48","data":{"code":"blinkFace()"}},{"start":"82.71","end":"82.81","data":{"code":"blinkFace()"}},{"start":"83.35","end":"83.45","data":{"code":"blinkFace()"}},{"start":"83.71","end":"83.81","data":{"code":"blinkFace()"}},{"start":"84.08","end":"84.18","data":{"code":"blinkFace()"}},{"start":"84.44","end":"84.54","data":{"code":"blinkFace()"}},{"start":"84.73","end":"84.83","data":{"code":"blinkFace()"}},{"start":"85.05","end":"85.15","data":{"code":"blinkFace()"}},{"start":"85.37","end":"85.47","data":{"code":"blinkFace()"}},{"start":"86.02","end":"86.12","data":{"code":"blinkFace()"}},{"start":"10.66","end":"10.76","data":{"code":"blinkFace()"}},{"start":"12.32","end":"12.42","data":{"code":"blinkFace()"}},{"start":"13.30","end":"13.40","data":{"code":"blinkFace()"}},{"start":"13.58","end":"13.68","data":{"code":"blinkFace()"}},{"start":"13.94","end":"14.04","data":{"code":"blinkFace()"}},{"start":"14.30","end":"14.40","data":{"code":"blinkFace()\n\ncc.clearRect(0,0,window.innerWidth,window.innerHeight) "}},{"start":"15.04","end":"15.14","data":{"code":"blinkFace()"}},{"start":"15.29","end":"15.39","data":{"code":"blinkFace()"}},{"start":"15.85","end":"15.95","data":{"code":"blinkFace()"}},{"start":"17.72","end":"17.82","data":{"code":"blinkFace()"}},{"start":"18.60","end":"18.70","data":{"code":"blinkFace()"}},{"start":"19.29","end":"19.39","data":{"code":"blinkFace()"}},{"start":"20.27","end":"20.37","data":{"code":"blinkFace()"}},{"start":"20.66","end":"20.76","data":{"code":"blinkFace()\n"}},{"start":"24.28","end":"24.38","data":{"code":"blinkFace()"}},{"start":"86.26","end":"86.36","data":{"code":"cc.clearRect(0,0,window.innerWidth,window.innerHeight)"}}],
+      keyframes: exportedKeyframes,
       
       onCanPlay: function(){
+
+      	// auto Mute
+      	// document.querySelector('.ckf-audio-toggle').click()
      
       },
 
@@ -406,23 +586,39 @@
       	// console.log(sin60)
       	// if( !isNaN(sin60) )	paramsRange[5] = sin60
 
-      	doMorphs2()
 
       	// draw face
+      	
+      	// black out canvas
       	if( clearFaceCanvas ){
-      		cc.fillStyle = 'rgba(0, 0, 0, .03)';
-      		cc.fillRect(0,0,window.innerWidth,window.innerHeight)
+      		context.fillStyle = 'rgba(0, 0, 0, .03)';
+      		context.fillRect(0,0,window.innerWidth,window.innerHeight)
       	}
 
-      	if( time ) draw(document.getElementById('compare'), paramsRange)
+      	if( singing ){
+      		singingCounter++
+      		singingCounter = singingCounter % 5
+      		if( singingCounter == 0 ) paramsRange[6] = rRange(-30,10)
+      	}
 
-      	// Everything after this line would change based on your project.
-      	// In this example we are updating 3D shapes initialized above
-		    pyramid.rotation.z  += 0.0005
-		    pyramid.rotation.y  += 0.005		  
-		    pyramid2.rotation.z -= 0.0005
-		    pyramid2.rotation.y -= 0.0009
+      	if( time && time > 0.25 ){
+	      	doMorphs2()
+      		drawFace(document.getElementById('compare'), paramsRange)
+      	}
+
+      	// pyramid.rotation.z  += 0.0005
+		    pyramid.rotation.y  += 0.005
+		    
+		    // pyramid2.rotation.z -= 0.0005
+		    pyramid2.rotation.y -= 0.005
+		   	
 		   	boxMesh.rotation.y  -= 0.008
+
+		   	pyramidGroup.rotation.y += pyramidGroupRotation
+		   	pyramidGroup.rotation.x = Math.sin(pyramidGroup.rotation.y * 2 * Math.PI * 0.1)
+
+
+		   	// pyramidGroup.rotation.z += 
 
 		   	// hook in the variables we declared in ckf.state
 		   	pyramidGroup.scale.x = ckf.state.pyramidGroupScale
@@ -430,9 +626,21 @@
 		   	pyramidGroup.scale.z = ckf.state.pyramidGroupScale
 		   	pyramid.position.x   = ckf.state.pyramidXOffset
 		   	pyramid2.position.x  = ckf.state.pyramidXOffset*-1
-		  
+
+		   	boxGroup.scale.x      = ckf.state.cubeScale
+		   	boxGroup.scale.y      = ckf.state.cubeScale
+		   	boxGroup.scale.z      = ckf.state.cubeScale
+
+		   	// lock cube to camera
+		   	boxGroup.quaternion.copy(camera.quaternion)
+
 		  	// do Three JS rendering
 		    renderer.render(scene, camera)
+      },
+
+      onFinish: function(){
+      	document.querySelector('.ckf-start').remove()
+      	document.querySelector('.ckf-loading').classList.remove('hidden')
       }
     })
   </script>
