@@ -1,13 +1,14 @@
 function CodeKeyframes(args){
 
-  if( !args.audioPath ) return
+  if( !args.audioPath && !args.videoElement ) return
 
-  this.audioPath  = args.audioPath
-  this.editorOpen = args.editorOpen || false
-  this.keyframes  = args.keyframes  || []
-  this.label      = args.label
-  this.autoplay   = args.autoplay   || false
-  this.state      = args.state      || {}
+  this.audioPath    = args.audioPath
+	this.videoElement = args.videoElement
+  this.editorOpen   = args.editorOpen || false
+  this.keyframes    = args.keyframes  || []
+  this.label        = args.label
+  this.autoplay     = args.autoplay   || false
+  this.state        = args.state      || {}
 
   // event callbacks
   this.onFrame    = args.onFrame    || function(){}
@@ -61,10 +62,7 @@ function CodeKeyframes(args){
     this._panel.appendChild(_label)
   }
 
-  // immediately close editor if needed
-  if( !this.editorOpen ){
-  	this.toggleEditor()
-  }
+  
 
   
   /*
@@ -549,6 +547,11 @@ function CodeKeyframes(args){
     this.editorOpen = !this.editorOpen
   }
 
+  // immediately close editor if needed
+  if( !this.editorOpen ){
+  	this.toggleEditor()
+  }
+
   this.updateStatePanel = (regionState) => {
 
   	// default to initial state 
@@ -594,6 +597,9 @@ function CodeKeyframes(args){
   var waveColor     = args.waveColor     || '#3AEAD2'
   var progressColor = args.progressColor || '#0c9fa7'
 
+  var backend = 'WebAudio'
+  if( this.videoElement ) backend = "MediaElement"
+
   this.wavesurfer = WaveSurfer.create({
       container:     '.ckf-waveform',
       height:        waveHeight,
@@ -603,10 +609,15 @@ function CodeKeyframes(args){
       progressColor: progressColor,
       barWidth:      1,
       cursorColor:   '#fff',
-      plugins: [WaveSurfer.cursor.create(),WaveSurfer.regions.create()]
+      backend:       backend,
+      plugins:       [WaveSurfer.cursor.create(),WaveSurfer.regions.create()]
   })
 
-  this.wavesurfer.load(this.audioPath)
+	if( this.videoElement ){
+		this.wavesurfer.load(this.videoElement)
+	}else{
+	  this.wavesurfer.load(this.audioPath)
+	}
 
   // run function passed to codekeyframes on init
   this.wavesurfer.on('pause', () => {
