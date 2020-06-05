@@ -1,0 +1,94 @@
+<html>
+
+<head>
+  <title>Code Keyframes Basic Example</title>
+  <link rel="stylesheet" href="/codeKeyframes.css">
+  
+  <style>
+  	body{
+  		background-color: #000;  		
+  	}
+  	main{
+  		width: 100%;
+  		height: 100%;
+  		display: flex;
+  		flex-direction: column;
+  		align-items: center;
+  		justify-content: center;
+  	}
+  	.square{
+  		width: 50vw;
+  		height: 50vw;
+  		background-color: chartreuse;
+  		transition:.2s all;
+  	}
+  </style>
+
+</head>
+
+<body>
+
+	<main>
+		<div class="square"></div>
+	</main>
+
+	<script>
+
+		// helpers used in the demo
+
+		_square = document.querySelector('.square')
+
+		var r = function(max){
+			return Math.floor(Math.random()*max)
+		}
+
+	</script>
+
+
+	<!-- Required inclusion of codekeyframes -->
+  <script src='/codeKeyframes.js'></script>
+
+	<!-- CKF Initialization -->
+  <script>
+    var ckf = new CodeKeyframes({
+      
+      audioPath:     './jetski-b-d0n.xyz.mp3',
+      editorOpen:    true,
+      waveColor:     'white',
+      progressColor: 'chartreuse',
+      bgColor:       '#222',
+      label:         'CodeKeyframes Basic Demo by d0n.xyz',
+      autoplay:      false,
+      
+      // each value in state generates a variable you can easily change in the editor
+      // variables can be accessed elsewhere in your code like ckf.state.varName
+      state: {
+      	// pyramidGroupScale: 1,
+      	// pyramidXOffset:    0
+      },
+
+      // no need to edit keyframes by hand. When you click "Export Keyframes" in the editor,
+      // you will paste the result into this variable
+      keyframes: [{"start":"6.15","end":"6.25","data":{"code":"_square.style.transform = `rotate(${ r(360) }deg)`"}},{"start":"9.22","end":"9.32","data":{"code":"_square.style.transform = `rotate(${ r(360) }deg)`"}},{"start":"12.21","end":"12.31","data":{"code":"_square.style.transform = `rotate(${ r(360) }deg)`"}},{"start":"15.21","end":"15.31","data":{"code":"_square.style.transform = `rotate(${ r(360) }deg)`"}},{"start":"18.14","end":"18.24","data":{"code":"_square.style.transform = `rotateX(${ r(180) }deg) rotatey(${ r(180) }deg)`"}},{"start":"20.82","end":"20.92","data":{"code":"_square.style.transform = `rotateX(${ r(180) }deg) rotateY(${ r(180) }deg)`"}},{"start":"23.82","end":"23.92","data":{"code":"_square.style.transform = `rotateX(${ r(180) }deg) rotatey(${ r(180) }deg)`"}},{"start":"26.78","end":"26.88","data":{"code":"_square.style.transform = `rotateX(${ r(180) }deg) rotatey(${ r(180) }deg)`"}},{"start":"29.80","end":"29.90","data":{"code":"_square.style.transform = `rotateX(${ r(180) }deg) rotatey(${ r(180) }deg)`"}},{"start":"32.81","end":"32.91","data":{"code":"_square.style.transform = `rotateX(${ r(180) }deg) rotatey(${ r(180) }deg)`"}},{"start":"35.81","end":"35.91","data":{"code":"_square.style.transform = `rotateX(${ r(180) }deg) rotatey(${ r(180) }deg)`"}},{"start":"38.78","end":"38.88","data":{"code":"_square.style.transform = `rotateX(${ r(180) }deg) rotatey(${ r(180) }deg)`"}},{"start":"41.83","end":"41.93","data":{"code":"_square.style.transform = `rotateX(${ r(180) }deg) rotatey(${ r(180) }deg)`"}},{"start":"44.84","end":"44.94","data":{"code":"_square.style.transform = `rotateX(${ r(180) }deg) rotatey(${ r(180) }deg)`"}},{"start":"47.76","end":"47.86","data":{"code":"_square.style.transform = ``\n\n_square.style.backgroundColor = `chartreuse`"}},{"start":"25.29","end":"25.39","data":{"code":"_square.style.backgroundColor = `white`"}},{"start":"28.32","end":"28.42","data":{"code":"_square.style.backgroundColor = `chartreuse`"}},{"start":"31.33","end":"31.43","data":{"code":"_square.style.backgroundColor = `white`"}},{"start":"34.31","end":"34.41","data":{"code":"_square.style.backgroundColor = `cyan`"}},{"start":"37.31","end":"37.41","data":{"code":"_square.style.backgroundColor = `white`"}},{"start":"40.31","end":"40.41","data":{"code":"_square.style.backgroundColor = `blue`"}},{"start":"43.31","end":"43.41","data":{"code":"_square.style.backgroundColor = `white`"}},{"start":"46.31","end":"46.41","data":{"code":"_square.style.backgroundColor = `hotpink`"}}],
+      
+      onCanPlay: function(){
+      	// audio loaded and ready to play
+      	console.log('onCanPlay triggered')
+      },
+
+      onPlay: function(){
+      	console.log('onPlay triggered')
+      },
+
+      onPause: function(){
+      	console.log('onPause triggered')
+      },
+
+      onFrame: function(){
+      	console.log('onFrame triggered, do/render something')
+      }
+    })
+  </script>
+
+</body>
+</html>

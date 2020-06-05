@@ -1,0 +1,142 @@
+<html>
+
+<head>
+  <title>Code Keyframes Three JS Example</title>
+  <link rel="stylesheet" href="/codeKeyframes.css">
+
+  <style>
+
+    /* these styles are just for the example */
+    body{
+    	background-color: #000;
+    	overflow: hidden;
+    	color:#fff;
+    	font-family: monospace;
+    }
+
+    .example{
+			position: fixed;
+			top: 20px;
+			left: 20px;
+			z-index: 2;
+    }
+    
+  </style>
+</head>
+
+<body>
+
+	<div class="example">Press space to toggle playback</div>
+  
+  <!-- Three JS used for example. Remove this line if your project doesn't use Three JS -->
+	<script src='https://cdn.jsdelivr.net/gh/mrdoob/three.js@r109/build/three.min.js'></script>
+
+	<!-- Set up the Three JS scene, again just for this example -->
+	<script>
+		var winW = window.innerWidth
+		var winH = window.innerHeight
+
+		var scene = new THREE.Scene()
+		var camera = new THREE.PerspectiveCamera(50, winW / winH, 0.01, 20)
+
+		var renderer = new THREE.WebGLRenderer({
+		  antialias: false
+		})
+		renderer.setSize(winW, winH)
+		document.body.appendChild(renderer.domElement)
+		
+		// create pyramids
+		var radius = 4
+		var height = 5
+
+		var geometry = new THREE.CylinderGeometry(0, radius, height, 4, 1)
+		var material = new THREE.MeshNormalMaterial()
+		var pyramid  = new THREE.Mesh(geometry, material)
+		var pyramid2 = new THREE.Mesh(geometry, material)
+		
+		var pyramidGroup = new THREE.Group()
+
+		pyramidGroup.add(pyramid)
+		pyramidGroup.add(pyramid2)
+		scene.add(pyramidGroup)
+
+		pyramid2.rotation.z = 0.1
+
+		// Make a cube
+		var boxGeometry = new THREE.CubeGeometry(7.5, 7.5, 7.5)
+		var boxMaterial = new THREE.MeshBasicMaterial({
+		  color: '#fff',
+		  wireframe: true,
+		})
+		var boxMesh = new THREE.Mesh(boxGeometry, boxMaterial)
+		scene.add(boxMesh)
+
+		camera.position.z = 15
+
+	</script>
+
+	<!-- Required inclusion of codekeyframes -->
+  <script src='/codeKeyframes.js'></script>
+
+	<!-- CKF Initialization -->
+  <script>
+    var ckf = new CodeKeyframes({
+      
+      audioPath:     './audio/KIYOKO.mp3',
+      editorOpen:    true,
+      waveColor:     '#3AEAD2',
+      progressColor: '#0c9fa7',
+      bgColor:       '#222',
+      label:         'KIYOKO by EMINA | Visual: d0n.xyz',
+      autoplay:      false,
+      
+      // each value in state generates a variable you can easily change in the editor
+      // variables can be accessed elsewhere in your code like ckf.state.varName
+      state: {
+      	pyramidGroupScale: 1,
+      	pyramidXOffset:    0
+      },
+
+      // no need to edit keyframes by hand. When you click "Export Keyframes" in the editor,
+      // you will paste the result into this variable
+      keyframes: [{"start":"2.73","end":"2.83","data":{"code":"pyramid.rotation.z = Math.random()*360\npyramid2.rotation.z = Math.random()*360","state":{"pyramidGroupScale":"0.5","pyramidXOffset":"3"}}},{"start":"5.40","end":"5.50","data":{"code":"pyramid.rotation.z = Math.random()*360\npyramid2.rotation.z = Math.random()*360","state":{"pyramidGroupScale":"0.8","pyramidXOffset":"-0.6"}}},{"start":"8.10","end":"8.20","data":{"code":"pyramid.rotation.z = Math.random()*360\npyramid2.rotation.z = Math.random()*360","state":{"pyramidGroupScale":"1","pyramidXOffset":"0.5"}}},{"start":"10.76","end":"10.86","data":{"code":"pyramid.rotation.z = Math.random()*360\npyramid2.rotation.z = Math.random()*360","state":{"pyramidGroupScale":".4","pyramidXOffset":"5.5"}}},{"start":"13.45","end":"13.55","data":{"code":"pyramid.rotation.z = Math.random()*360\npyramid2.rotation.z = Math.random()*360","state":{"pyramidGroupScale":"0.6","pyramidXOffset":"1.6"}}},{"start":"16.09","end":"16.19","data":{"code":"pyramid.rotation.z = Math.random()*360\npyramid2.rotation.z = Math.random()*360","state":{"pyramidGroupScale":"0.8","pyramidXOffset":"0"}}},{"start":"18.78","end":"18.88","data":{"code":"pyramid.rotation.z = Math.random()*360\npyramid2.rotation.z = Math.random()*360","state":{"pyramidGroupScale":"0.9","pyramidXOffset":"0.4"}}}],
+      
+      onCanPlay: function(){
+      	// alert('can play')
+      	console.log('onCanPlay triggered')
+      },
+
+      onPlay: function(){
+      	console.log('onPlay triggered')
+      },
+
+      onPause: function(){
+      	console.log('onPause triggered')
+      },
+
+      onFrame: function(){
+      	console.log('onFrame triggered, do/render something')
+
+      	// Everything after this line would change based on your project.
+      	// In this example we are updating 3D shapes initialized above
+		    pyramid.rotation.z  += 0.0005
+		    pyramid.rotation.y  += 0.005		  
+		    pyramid2.rotation.z -= 0.0005
+		    pyramid2.rotation.y -= 0.0009
+		   	boxMesh.rotation.y  -= 0.008
+
+		   	// hook in the variables we declared in ckf.state
+		   	pyramidGroup.scale.x = ckf.state.pyramidGroupScale
+		   	pyramidGroup.scale.y = ckf.state.pyramidGroupScale
+		   	pyramidGroup.scale.z = ckf.state.pyramidGroupScale
+		   	pyramid.position.x   = ckf.state.pyramidXOffset
+		   	pyramid2.position.x  = ckf.state.pyramidXOffset*-1
+		  
+		  	// do Three JS rendering
+		    renderer.render(scene, camera)
+      }
+    })
+  </script>
+
+</body>
+</html>

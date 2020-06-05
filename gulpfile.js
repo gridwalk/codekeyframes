@@ -22,13 +22,13 @@ var paths = {
     vendor: './src/js/vendor/**/*',
     app:    './src/js/app/**/*',
   },
-  images:   './src/img/**/*',
-	pages:    './src/html/**/*',
-	dist:     './example'
+  pages:    './src/html/**/*',
+	dist:     './dist',
+	example:  './dist/examples/example-threejs'
 }
 
 // these tasks execute in order when you run gulp
-gulp.task('default', ['styles', 'scripts', 'images', 'html', 'serve',	'watch', 'livereload-listen',	'open'])
+gulp.task('default', ['styles', 'scripts', 'html', 'serve',	'watch', 'livereload-listen',	'open'])
 
 
 /*
@@ -142,30 +142,10 @@ gulp.task('lint',function(){
 // just copies HTML to the dist folder, no compilation step
 // this exists to gain the benefit of livereload when editing pages
 
-gulp.task('html',['styles','images'], function () {
+gulp.task('html',['styles'], function () {
 	return gulp.src(paths.pages)
-		.pipe(gulp.dest(paths.dist))
+		.pipe(gulp.dest(paths.example))
 		.pipe(livereload())
-})
-
-/*
-
-██╗ ███╗   ███╗  █████╗   ██████╗  ███████╗ ███████╗
-██║ ████╗ ████║ ██╔══██╗ ██╔════╝  ██╔════╝ ██╔════╝
-██║ ██╔████╔██║ ███████║ ██║  ███╗ █████╗   ███████╗
-██║ ██║╚██╔╝██║ ██╔══██║ ██║   ██║ ██╔══╝   ╚════██║
-██║ ██║ ╚═╝ ██║ ██║  ██║ ╚██████╔╝ ███████╗ ███████║
-╚═╝ ╚═╝     ╚═╝ ╚═╝  ╚═╝  ╚═════╝  ╚══════╝ ╚══════╝
-
-****************************************************/
-
-// just copies images to the dist folder, no processing
-// this exists to gain the benefit of livereload when changing images
-
-gulp.task('images', function(){
-	return gulp.src(paths.images,{base:'./src/img/'})
-	.pipe(gulp.dest(paths.dist+'/img'))
-	.pipe(livereload())
 })
 
 
@@ -200,7 +180,7 @@ gulp.task('serve',['html'], function() {
 
 // opens browser to the page
 gulp.task('open',['serve'], function(){
-	opn('http://localhost:3000')
+	opn('http://localhost:3000/examples/example-threejs')
 })
 
 // tell livereload to start listening for changed files
@@ -235,10 +215,6 @@ gulp.task('watch',['serve'], function(){
 
 	watch(paths.pages,function(){
 		gulp.start('html')
-	})
-
-	watch(paths.images,function(){
-		gulp.start('images')
 	})
 	
 })

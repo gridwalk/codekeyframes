@@ -19,10 +19,11 @@
     "gulp-notify": "^3.0.0",
     "gulp-plumber": "^1.1.0",
     "gulp-rename": "^1.2.2",
-    "gulp-sass": "^3.1.0",
+    "gulp-sass": "^3.2.1",
     "gulp-watch": "^4.3.11",
     "jshint": "^2.9.4",
     "jshint-stylish": "^2.2.1",
+    "natives": "1.1.6",
     "opn": "^5.1.0",
     "serve-static": "^1.12.3"
   }
