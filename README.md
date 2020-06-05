@@ -2,13 +2,13 @@
 
 A browser based tool for running JavaScript code at specific frames of an audio or video track. This is useful for creating interactive music videos, making educational content, or anything else where audiovisual synchronization and interactivity is required.
 
-![alt text](https://raw.githubusercontent.com/gridwalk/codekeyframes/master/examples/example-threejs/poster.png "Codekeyframes Demo Screenshot")
+![alt text](https://raw.githubusercontent.com/gridwalk/codekeyframes/master/dist/examples/example-threejs/poster.png "Codekeyframes Demo Screenshot")
 
 ## Examples
 
-[Basic Example](https://gridwalk.github.io/codekeyframes/examples/example-basic)
-[Education Example](https://gridwalk.github.io/codekeyframes/examples/example-education)
-[Three JS Example](https://gridwalk.github.io/codekeyframes/examples/example-threejs)
+[Basic Example](https://gridwalk.github.io/codekeyframes/dist/examples/example-basic)
+[Education Example](https://gridwalk.github.io/codekeyframes/dist/examples/example-education)
+[Three JS Example](https://gridwalk.github.io/codekeyframes/dist/examples/example-threejs)
 
 ## How-To
 
