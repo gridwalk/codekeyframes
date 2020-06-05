@@ -6,9 +6,9 @@ A browser based tool for running JavaScript code at specific frames of an audio 
 
 ## Examples
 
-[Basic Example](https://gridwalk.github.io/codekeyframes/dist/examples/example-basic)
-[Education Example](https://gridwalk.github.io/codekeyframes/dist/examples/example-education)
-[Three JS Example](https://gridwalk.github.io/codekeyframes/dist/examples/example-threejs)
+- [Basic Example](https://gridwalk.github.io/codekeyframes/dist/examples/example-basic)
+- [Education Example](https://gridwalk.github.io/codekeyframes/dist/examples/example-education)
+- [Three JS Example](https://gridwalk.github.io/codekeyframes/dist/examples/example-threejs)
 
 ## How-To
 
