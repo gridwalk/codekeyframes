@@ -1,12 +1,14 @@
 # Code Keyframes
 
-A browser based tool for running JavaScript code at specific frames of an audio track. This is useful for creating interactive music videos, making animations, or anything else where audiovisual synchronization is required.
+A browser based tool for running JavaScript code at specific frames of an audio or video track. This is useful for creating interactive music videos, making educational content, or anything else where audiovisual synchronization and interactivity is required.
 
-![alt text](https://raw.githubusercontent.com/gridwalk/codekeyframes/master/example/poster.png "Codekeyframes Demo Screenshot")
+![alt text](https://raw.githubusercontent.com/gridwalk/codekeyframes/master/dist/examples/example-threejs/poster.png "Codekeyframes Demo Screenshot")
 
-## Demo
+## Examples
 
-[Demo](https://gridwalk.github.io/codekeyframes/example/)
+- [Basic Example](https://gridwalk.github.io/codekeyframes/dist/examples/example-basic)
+- [Education Example](https://gridwalk.github.io/codekeyframes/dist/examples/example-education)
+- [Three JS Example](https://gridwalk.github.io/codekeyframes/dist/examples/example-threejs)
 
 ## How-To
 
@@ -19,6 +21,7 @@ A browser based tool for running JavaScript code at specific frames of an audio 
 ```javascript
 var ckf = new CodeKeyframes({
   audioPath:     './path/to-audio.mp3',
+  videoElement:  document.getElementById('some-video'), // if you want to sync to a video instead of an mp3
   editorOpen:    true,
   waveColor:     '#3AEAD2', // wave color right of the playhead
   progressColor: '#0c9fa7', // wave color left of the playhead
