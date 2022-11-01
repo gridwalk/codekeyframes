@@ -10,7 +10,7 @@
   "license": "MIT",
   "devDependencies": {
     "finalhandler": "^1.0.3",
-    "gulp": "^3.9.1",
+    "gulp": "^4.0.2",
     "gulp-autoprefixer": "^4.0.0",
     "gulp-concat": "^2.6.1",
     "gulp-jshint": "^2.0.4",
