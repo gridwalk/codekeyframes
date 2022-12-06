@@ -14,7 +14,7 @@
     "gulp-autoprefixer": "^4.0.0",
     "gulp-concat": "^2.6.1",
     "gulp-jshint": "^2.0.4",
-    "gulp-livereload": "^3.8.1",
+    "gulp-livereload": "^4.0.2",
     "gulp-minify": "^3.0.2",
     "gulp-notify": "^3.0.0",
     "gulp-plumber": "^1.1.0",
