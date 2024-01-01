@@ -400,9 +400,10 @@ function CodeKeyframes(args){
 
     var regions = this.wavesurfer.regions.list
     for( var key in regions ){
+      
       // convert regions to commands and add to sequence
-
-      console.log(regions[key].data.state)
+      // console.log(regions[key].data.state)
+      
 
       var command = {
         time: regions[key].start,

@@ -1,220 +1,149 @@
-var http         = require('http')                    // node core module to serve data
-var gulp         = require('gulp')                    // gulp task runner
-var watch        = require('gulp-watch')              // watch for files that change
-var sass         = require('gulp-sass')               // compiles sass
-var autoprefixer = require('gulp-autoprefixer')       // applies CSS vendor prefixes
-var rename       = require('gulp-rename')             // renames files
-var livereload   = require('gulp-livereload')         // reload browser when files change
-var concat       = require('gulp-concat')             // concatenate scripts
-var serveStatic  = require('serve-static')            // serves static files
-var finalhandler = require('finalhandler')            // standardizes server response
-var opn          = require('opn')                     // opens the browser when we gulp
-var jshint       = require('gulp-jshint')             // catches errors in javascript
-var stylish      = require('jshint-stylish')          // makes lint errors look nicer
-var plumber      = require('gulp-plumber')            // keeps pipes working even when error var ppens
-var notify       = require('gulp-notify')             // system notification when error happevar 
-var minify       = require('gulp-minify')             // minify JS
+import http from 'http'
+import gulp from 'gulp'
+import gulpWatch from 'gulp-watch'
+import dartSass from 'sass'
+import gulpSass from 'gulp-sass'
+import autoprefixer from 'gulp-autoprefixer'
+import rename from 'gulp-rename'
+import livereload from 'gulp-livereload'
+import opn from 'opn'
+import plumber from 'gulp-plumber'
+import notify from 'gulp-notify'
+import jshint from 'gulp-jshint'
+import concat from 'gulp-concat'
+import fs from 'fs'
+import serveStatic from 'serve-static'
+import finalhandler from 'finalhandler'
+import minify from 'gulp-minify'
+
+const packageJson = JSON.parse(fs.readFileSync('./package.json'))
+const sass = gulpSass(dartSass)
 
 // paths to files that are used in the project
 var paths = {
-	styles:   './src/scss/**/*',
-	scripts:  {
+  styles: './src/scss/**/*',
+  pages:'./src/html/**/*',
+  dist: './dist/',
+  scripts: {
     vendor: './src/js/vendor/**/*',
-    app:    './src/js/app/**/*',
+    app: './src/js/app/**/*',
   },
-  pages:    './src/html/**/*',
-	dist:     './dist',
-	example:  './dist/examples/example-threejs'
 }
 
-// these tasks execute in order when you run gulp
-gulp.task('default', ['styles', 'scripts', 'html', 'serve',	'watch', 'livereload-listen',	'open'])
+const pages = () => {
+  return gulp.src(paths.pages)
+    .pipe(gulp.dest(paths.dist))
+    .pipe(livereload())
+}
 
+// do the scss compilation
+const styles = () => {
+  return gulp.src('./src/scss/style.scss')
+    .pipe(plumber({
+      errorHandler: err => {
+        notify.onError({
+          title: err.relativePath,
+          subtitle: 'Line ' + err.line,
+          message: '<%= error.messageOriginal %>'
+        })(err)
+        this.emit('end')
+      }
+    }))
+    .pipe(sass({ outputStyle: 'compressed' }))
+    .pipe(autoprefixer({ cascade: false }))
+    .pipe(rename('codekeyframes.css'))
+    .pipe(gulp.dest(paths.dist))
+    .pipe(livereload())
+}
 
-/*
+// show notification on js error
+const lintScripts = () => {
+  return gulp.src(paths.scripts.app)
+    .pipe(plumber())
+    .pipe(jshint({
+      // https://jshint.com/docs/options/  reference all options
+      'esversion': 11,
+      'debug': true, // allows debugger statements
+      'asi': true, // allows missing semicolons
+      'sub': true, // allows bracket notation of array items
+      'evil': true, // allows eval statements
+    }))
+    .pipe(jshint.reporter('jshint-stylish'))
+    .pipe(notify(function (file) { // Use gulp-notify as jshint reporter
+      if (file.jshint.success) {
+        return false // Don't show something if success
+      }
+      var errors = file.jshint.results.map(function (data) {
+        if (data.error) {
+          return "(" + data.error.line + ':' + data.error.character + ') ' + data.error.reason
+        }
+      }).join("\n")
+      return file.relative + " (" + file.jshint.results.length + " errors)\n" + errors
+    }))
+}
 
-███████╗████████╗██╗   ██╗██╗     ███████╗███████╗
-██╔════╝╚══██╔══╝╚██╗ ██╔╝██║     ██╔════╝██╔════╝
-███████╗   ██║    ╚████╔╝ ██║     █████╗  ███████╗
-╚════██║   ██║     ╚██╔╝  ██║     ██╔══╝  ╚════██║
-███████║   ██║      ██║   ███████╗███████╗███████║
-╚══════╝   ╚═╝      ╚═╝   ╚══════╝╚══════╝╚══════╝
+// compiles all js into one file: main.js
+const compileScripts = () => {
+  return gulp.src([ paths.scripts.vendor, paths.scripts.app ])
+    .pipe(concat('codeKeyframes.js'))
+    .pipe(minify({
+      ext:{
+        src:'.js',
+        min:'.min.js'
+      }
+    }))
+    .pipe(gulp.dest(paths.dist))
+    .pipe(livereload())
+}
 
-*****************************************************/
+const scripts = gulp.series(lintScripts, compileScripts)
+scripts.description = 'compile scripts'
 
-// compiles scss files into one, starting from style.scss
-// sass searches style.scss for import statements and includes those files
-// also minifies resulting css and auto-prefixes for browser compatibility
+const compile = gulp.parallel(pages, styles, scripts)
+compile.description = 'compile all sources'
 
-gulp.task('styles', [], function(){
+const startServer = (done) => {
+  
+  // // Serve up dist folder
+  var serve = serveStatic(paths.dist)
 
-	// show notification on scss error
+  // Create server
+  var server = http.createServer(function onRequest(req, res) {
+    serve(req, res, finalhandler(req, res))
+  })
 
-	var scssError = function(err){
-		notify.onError({
-			title:    err.relativePath,
-			subtitle: 'Line '+err.line,
-			message:  '<%= error.messageOriginal %>'
-		})(err)
-		this.emit('end')
-	}
+  // Listen for requests on port 3000
+  // http://localhost:3000
+  server.listen(3000)
 
-	// do the scss compilation
+  done()
 
-	gulp.src('./src/scss/style.scss')
-		.pipe(plumber({
-				errorHandler: scssError
-		}))
-		.pipe(sass({outputStyle: 'compressed'}))
-		.pipe(autoprefixer({
-			browsers: ['last 2 versions'],
-			cascade: false
-		}))
-		.pipe(rename('codeKeyframes.css'))
-		.pipe(gulp.dest(paths.dist))
-		.pipe(livereload())
-})
+}
 
+const openBrowser = (done) => {
+  opn(`http://localhost:${ packageJson.port }`)
+  livereload.listen()
+  done()
+}
 
-/*
-
-███████╗ ██████╗██████╗ ██╗██████╗ ████████╗███████╗
-██╔════╝██╔════╝██╔══██╗██║██╔══██╗╚══██╔══╝██╔════╝
-███████╗██║     ██████╔╝██║██████╔╝   ██║   ███████╗
-╚════██║██║     ██╔══██╗██║██╔═══╝    ██║   ╚════██║
-███████║╚██████╗██║  ██║██║██║        ██║   ███████║
-╚══════╝ ╚═════╝╚═╝  ╚═╝╚═╝╚═╝        ╚═╝   ╚══════╝
-
-********************************************************/
-
-// compiles all JS files into one file
-// first concatenates js in vendor folder, then js in app folder
-
-gulp.task('scripts', ['lint'], function(){
-	return gulp.src([paths.scripts.vendor,paths.scripts.app])
-		.pipe(concat('codeKeyframes.js'))
-		.pipe(minify({
-			ext:{
-				src:'.js',
-				min:'.min.js'
-			}
-		}))
-		.pipe(gulp.dest(paths.dist))
-		.pipe(livereload())
-})
-
-// shows notification on js error
-
-gulp.task('lint',function(){
-	return gulp.src(paths.scripts.app)
-		.pipe(plumber())
-		.pipe(jshint({
-			'esversion': 6,
-			'evil':true, // allow eval (critical for codekeyframes to work)
-			'asi':true, // allows missing semicolons
-			'sub':true  // allows bracket notation of array items
-		}))
-		.pipe(jshint.reporter('jshint-stylish'))
-		.pipe(notify(function (file) {  // Use gulp-notify as jshint reporter
-			if (file.jshint.success) {
-				return false // Don't show something if success
-			}
-			var errors = file.jshint.results.map(function (data) {
-				if (data.error) {
-					return "(" + data.error.line + ':' + data.error.character + ') ' + data.error.reason
-				}
-			}).join("\n")
-			return file.relative + " (" + file.jshint.results.length + " errors)\n" + errors
-		}))
-})
-
-/*
-
-██╗  ██╗████████╗███╗   ███╗██╗
-██║  ██║╚══██╔══╝████╗ ████║██║
-███████║   ██║   ██╔████╔██║██║
-██╔══██║   ██║   ██║╚██╔╝██║██║
-██║  ██║   ██║   ██║ ╚═╝ ██║███████╗
-╚═╝  ╚═╝   ╚═╝   ╚═╝     ╚═╝╚══════╝
-
-*************************************/
-
-// just copies HTML to the dist folder, no compilation step
-// this exists to gain the benefit of livereload when editing pages
-
-gulp.task('html',['styles'], function () {
-	return gulp.src(paths.pages)
-		.pipe(gulp.dest(paths.example))
-		.pipe(livereload())
-})
-
-
-/*
-
-███████╗███████╗██████╗ ██╗   ██╗███████╗██████╗
-██╔════╝██╔════╝██╔══██╗██║   ██║██╔════╝██╔══██╗
-███████╗█████╗  ██████╔╝██║   ██║█████╗  ██████╔╝
-╚════██║██╔══╝  ██╔══██╗╚██╗ ██╔╝██╔══╝  ██╔══██╗
-███████║███████╗██║  ██║ ╚████╔╝ ███████╗██║  ██║
-╚══════╝╚══════╝╚═╝  ╚═╝  ╚═══╝  ╚══════╝╚═╝  ╚═╝
-
-****************************************************/
-
-// running gulp will start a little server in the dist folder
-
-gulp.task('serve',['html'], function() {
-
-	// Serve up dist folder
-	var serve = serveStatic(paths.dist)
-
-	// Start server
-	var server = http.createServer(function(req, res){
-		var done = finalhandler(req, res)
-		serve(req, res, done)
-	})
-
-	// Listen for requests on port 3000
-	// http://localhost:3000
-	server.listen(3000)
-})
-
-// opens browser to the page
-gulp.task('open',['serve'], function(){
-	opn('http://localhost:3000/examples/example-threejs')
-})
-
-// tell livereload to start listening for changed files
-// when a file changes the browser reloads itself
-gulp.task('livereload-listen', function(){
-	livereload.listen()
-})
-
-
-/*
-
-██╗    ██╗ █████╗ ████████╗ ██████╗██╗  ██╗
-██║    ██║██╔══██╗╚══██╔══╝██╔════╝██║  ██║
-██║ █╗ ██║███████║   ██║   ██║     ███████║
-██║███╗██║██╔══██║   ██║   ██║     ██╔══██║
-╚███╔███╔╝██║  ██║   ██║   ╚██████╗██║  ██║
- ╚══╝╚══╝ ╚═╝  ╚═╝   ╚═╝    ╚═════╝╚═╝  ╚═╝
-
-**********************************************/
+const serve = gulp.series(compile, startServer, openBrowser)
 
 // gulp watches the filesystem for changes, then compiles the according files
+const watch = (done) => {
 
-gulp.task('watch',['serve'], function(){
-	
-	watch(paths.styles,function(){
-		gulp.start('styles')
-	})
+  gulpWatch(paths.pages, function () {
+    pages()
+  })
 
-	watch([paths.scripts.app,paths.scripts.vendor],function(){
-		gulp.start('scripts')
-	})
+  gulpWatch(paths.styles, function () {
+    styles()
+  })
 
-	watch(paths.pages,function(){
-		gulp.start('html')
-	})
-	
-})
+  gulpWatch(paths.scripts.app, function () {
+    scripts()
+  })
+  done()
+}
+
+
+gulp.task('default', gulp.parallel(serve, watch))
